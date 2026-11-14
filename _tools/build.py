@@ -71,8 +71,8 @@ def scan(photos, tools):
 def render(tools, site):
     st = load_state(tools)
     tpl = open(os.path.join(tools, 'template.html')).read()
-    data = [{"id": s["id"], "name": s["name"], "area": s.get("area", ""), "notes": s.get("notes", ""),
-             "photos": [{k: p[k] for k in ("src", "thumb", "lat", "lon", "time")} for p in s["photos"]]}
+    data = [{"id": s["id"], "name": s["name"], "area": s.get("area", ""), "notes": s.get("notes", ""), "tags": s.get("tags", []),
+             "photos": [{k: p[k] for k in ("file", "src", "thumb", "lat", "lon", "time")} for p in s["photos"]]}
             for s in st["spots"]]
     os.makedirs(site, exist_ok=True)
     open(os.path.join(site, 'index.html'), 'w').write(tpl.replace('/*SPOTS_JSON*/[]', json.dumps(data, indent=1)))
@@ -92,7 +92,7 @@ def update(photos, tools, site):
             name = spot_name(stem); key = slug(name)
             spot = by_key.get(key)
             if not spot:
-                spot = {"id": key, "name": name.title() if name.islower() else name, "area": "", "notes": "", "photos": []}
+                spot = {"id": key, "name": name.title() if name.islower() else name, "area": "", "notes": "", "tags": [], "photos": []}
                 st['spots'].append(spot); by_key[key] = spot; out['new_spots'].append(spot['name'])
             base = slug(stem); n = 2
             while any(p['src'] == f'img/{base}.jpg' for s in st['spots'] for p in s['photos']):
