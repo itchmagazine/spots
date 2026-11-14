@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Itch NYC Spot Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: photocopied zine. Drawn map on the left, spot list + detail on the right; stacks on phones. */
+:root {
+  --paper: #d9d9d4;
+  --paper-2: #c9c9c3;
+  --ink: #111111;
+  --ink-soft: #4a4a46;
+  --water: #b4b8b6;
+  --hot: #ff3d14;
+  --display: "Archivo Black", "Arial Black", Impact, sans-serif;
+  --body: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px; }
+
+header {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 8px 24px;
+  padding: 20px clamp(16px, 4vw, 40px) 14px;
+  border-bottom: 3px solid var(--ink);
+}
+.logo {
+  font-family: var(--display);
+  font-size: clamp(40px, 9vw, 76px);
+  line-height: .85; letter-spacing: -.02em; margin: 0;
+  text-transform: uppercase;
+}
+.logo span { color: var(--hot); }
+.tag { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; max-width: 34ch; text-wrap: balance; }
+
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 0;
+}
+@media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+
+.map-wrap { border-right: 3px solid var(--ink); padding: 16px; }
+@media (max-width: 820px) { .map-wrap { border-right: 0; border-bottom: 3px solid var(--ink); } }
+#map { width: 100%; height: auto; display: block; max-height: 82vh; margin: 0 auto; }
+#map .water { fill: var(--water); }
+#map .hatch line { stroke: var(--ink); stroke-width: .6; opacity: .25; }
+#map .pier { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+#map .shore { fill: none; stroke: var(--ink); stroke-width: 3; }
+#map .street { fill: none; stroke: var(--ink); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .14; }
+#map .street.main { opacity: .22; stroke-width: 10; }
+#map .st-label { font: 600 10px var(--body); fill: var(--ink-soft); letter-spacing: .12em; text-transform: uppercase; }
+#map .hood { font: 22px var(--display); fill: var(--ink); opacity: .16; letter-spacing: .02em; }
+#map .river { font: 26px var(--display); fill: var(--ink); opacity: .35; letter-spacing: .3em; }
+#map .scale text { font: 600 10px var(--body); fill: var(--ink); }
+#map .scale line { stroke: var(--ink); stroke-width: 2; }
+.pin { cursor: pointer; }
+.pin circle.dot { fill: var(--ink); stroke: var(--paper); stroke-width: 3; transition: fill .15s; }
+.pin text { font: 14px var(--display); fill: var(--paper); pointer-events: none; }
+.pin .ring { fill: none; stroke: var(--hot); stroke-width: 3; opacity: 0; }
+.pin:hover circle.dot, .pin:focus-visible circle.dot, .pin.on circle.dot { fill: var(--hot); }
+.pin.on .ring { opacity: 1; }
+.pin:focus { outline: none; }
+.map-note { font-size: 11px; color: var(--ink-soft); margin: 10px 0 0; text-align: center; }
+
+.side { display: flex; flex-direction: column; min-width: 0; }
+.list { list-style: none; margin: 0; padding: 0; border-bottom: 3px solid var(--ink); }
+.list li + li { border-top: 1px dashed var(--ink); }
+.card {
+  width: 100%; display: grid; grid-template-columns: 34px 64px 1fr auto; align-items: center; gap: 14px;
+  padding: 12px 16px; background: none; border: 0; color: inherit; text-align: left; cursor: pointer; font: inherit;
+}
+.card:hover { background: var(--paper-2); }
+.card[aria-current="true"] { background: var(--ink); color: var(--paper); }
+.card .num { font: 20px var(--display); width: 34px; height: 34px; display: grid; place-items: center; border: 2px solid currentColor; border-radius: 50%; }
+.card[aria-current="true"] .num { background: var(--hot); border-color: var(--hot); color: var(--ink); }
+.card img { width: 64px; height: 64px; object-fit: cover; display: block; filter: grayscale(1) contrast(1.15); }
+.card[aria-current="true"] img { filter: none; }
+.card h3 { margin: 0; font: 17px/1.1 var(--display); text-transform: uppercase; }
+.card p { margin: 2px 0 0; font-size: 12px; opacity: .8; }
+.card .count { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+
+.detail { padding: 18px 16px 28px; display: grid; gap: 14px; }
+.detail h2 { margin: 0; font: clamp(28px, 5vw, 42px)/.95 var(--display); text-transform: uppercase; text-wrap: balance; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0; padding: 0; list-style: none; font-size: 12px; }
+.meta li { border: 1.5px solid var(--ink); padding: 2px 8px; text-transform: uppercase; letter-spacing: .05em; }
+.meta li.coords { font-variant-numeric: tabular-nums; text-transform: none; }
+.notes { margin: 0; max-width: 60ch; font-size: 14px; }
+.photos { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
+.photos figure { margin: 0; flex: 0 0 min(78%, 320px); scroll-snap-align: start; }
+.photos img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block; border: 3px solid var(--ink); background: var(--paper-2); }
+.photos figcaption { font-size: 11px; margin-top: 4px; color: var(--ink-soft); }
+.go { display: flex; flex-wrap: wrap; gap: 10px; }
+.go a {
+  font: 13px var(--display); text-transform: uppercase; text-decoration: none; letter-spacing: .03em;
+  padding: 10px 14px; border: 3px solid var(--ink); background: var(--paper);
+}
+.go a:hover { background: var(--ink); color: var(--paper); }
+.go a.primary { background: var(--hot); }
+.go a.primary:hover { background: var(--ink); }
+
+footer { padding: 14px clamp(16px, 4vw, 40px); border-top: 3px solid var(--ink); font-size: 11px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; text-transform: uppercase; letter-spacing: .08em; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header>
+  <h1 class="logo">Itch<span>/</span>NYC Spots</h1>
+  <p class="tag">Spots we've hit around the city. Tap a pin for photos and directions.</p>
+</header>
+
+<main>
+  <section class="map-wrap" aria-label="Spot map of Lower Manhattan">
+    <svg id="map" role="img" aria-labelledby="map-title"></svg>
+    <p class="map-note">Pins are exact GPS from the photos. Streets are drawn by hand and approximate.</p>
+  </section>
+
+  <section class="side">
+    <ul class="list" id="list"></ul>
+    <article class="detail" id="detail" aria-live="polite"></article>
+  </section>
+</main>
+
+<footer>
+  <span>Itch Magazine · Spot Map Vol. 1</span>
+  <span id="spot-count"></span>
+</footer>
+
+<script>
+// ---- Spot data. Add a spot by adding an object here. ----
+const SPOTS = /*SPOTS_JSON*/[];
+
+// ---- Map projection (equirectangular, corrected for latitude) ----
+// Each spot's pin sits at the average of its photos' GPS points.
+SPOTS.forEach(s => {
+  s.lat = s.photos.reduce((a, p) => a + p.lat, 0) / s.photos.length;
+  s.lon = s.photos.reduce((a, p) => a + p.lon, 0) / s.photos.length;
+});
+// Frame: the drawn Lower Manhattan area, grown to fit every spot.
+const BOUNDS = { latMin: 40.7075, latMax: 40.7245, lonMin: -74.0210, lonMax: -74.0045 };
+SPOTS.forEach(s => {
+  BOUNDS.latMin = Math.min(BOUNDS.latMin, s.lat - 0.002); BOUNDS.latMax = Math.max(BOUNDS.latMax, s.lat + 0.002);
+  BOUNDS.lonMin = Math.min(BOUNDS.lonMin, s.lon - 0.0025); BOUNDS.lonMax = Math.max(BOUNDS.lonMax, s.lon + 0.0025);
+});
+const K = Math.cos((BOUNDS.latMin + BOUNDS.latMax) / 2 * Math.PI / 180);
+const H = 1000;
+const W = Math.round(H * (BOUNDS.lonMax - BOUNDS.lonMin) * K / (BOUNDS.latMax - BOUNDS.latMin));
+const px = (lat, lon) => [
+  (lon - BOUNDS.lonMin) / (BOUNDS.lonMax - BOUNDS.lonMin) * W,
+  (BOUNDS.latMax - lat) / (BOUNDS.latMax - BOUNDS.latMin) * H
+];
+const path = pts => pts.map((p, i) => (i ? "L" : "M") + px(p[0], p[1]).map(n => n.toFixed(1)).join(",")).join(" ");
+
+const SHORE = [[40.7245,-74.0114],[40.7230,-74.0119],[40.7215,-74.0128],[40.7200,-74.0133],[40.7185,-74.0140],[40.7172,-74.0150],[40.7160,-74.0165],[40.7150,-74.0175],[40.7130,-74.0182],[40.7110,-74.0187],[40.7090,-74.0185],[40.7075,-74.0183]];
+const PIERS = [
+  [[40.7218,-74.0127],[40.7218,-74.0168],[40.7209,-74.0168],[40.7209,-74.0130]],
+  [[40.7203,-74.0131],[40.7203,-74.0164],[40.7194,-74.0164],[40.7194,-74.0134]]
+];
+const STREETS = [
+  { name: "West St", main: true, pts: [[40.7245,-74.0104],[40.7215,-74.0117],[40.7185,-74.0129],[40.7160,-74.0133],[40.7140,-74.0133],[40.7110,-74.0138],[40.7075,-74.0143]], label: [40.7228,-74.0111, -68] },
+  { name: "Broadway", main: true, pts: [[40.7075,-74.0119],[40.7110,-74.0096],[40.7141,-74.0062],[40.7160,-74.0045]], label: [40.7128,-74.0072, -50] },
+  { name: "Chambers St", pts: [[40.7176,-74.0136],[40.7141,-74.0062],[40.7128,-74.0045]], label: [40.7162,-74.0106, 62] },
+  { name: "Vesey St", pts: [[40.7146,-74.0133],[40.7117,-74.0091]], label: [40.7135,-74.0118, 52] },
+  { name: "Canal St", pts: [[40.7238,-74.0108],[40.7225,-74.0060],[40.7208,-74.0045]], label: [40.7233,-74.0088, 17] }
+];
+
+function drawMap() {
+  const svg = document.getElementById("map");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const water = path(SHORE) + " " + path([[40.7075,-74.0215],[40.7245,-74.0215]]).replace("M","L") + " Z";
+  let hatch = "";
+  for (let y = -W; y < H; y += 14) hatch += `<line x1="0" y1="${y}" x2="${W}" y2="${y + W}"/>`;
+  const streets = STREETS.map(s => {
+    const [x, y] = px(s.label[0], s.label[1]);
+    return `<path class="street${s.main ? " main" : ""}" d="${path(s.pts)}"/>` +
+      `<text class="st-label" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${s.label[2]})" text-anchor="middle">${s.name}</text>`;
+  }).join("");
+  const label = (lat, lon, txt, cls, rot = 0) => { const [x, y] = px(lat, lon); return `<text class="${cls}" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot})" text-anchor="middle">${txt}</text>`; };
+  // 200 m scale bar
+  const m200 = 200 / (111320 * K) / (BOUNDS.lonMax - BOUNDS.lonMin) * W;
+  const sx = W - 40 - m200, sy = H - 30;
+  // Push pins apart when they would overlap; a leader line marks the true GPS point.
+  const pos = SPOTS.map(s => { const [x, y] = px(s.lat, s.lon); return { x0: x, y0: y, x, y }; });
+  for (let it = 0; it < 60; it++) {
+    for (let a = 0; a < pos.length; a++) for (let b = a + 1; b < pos.length; b++) {
+      let dx = pos[b].x - pos[a].x, dy = pos[b].y - pos[a].y, d = Math.hypot(dx, dy);
+      if (d < 38) { if (d < 0.01) { dx = 1; dy = -1; d = Math.SQRT2; } const k = (38 - d) / 2 / d;
+        pos[a].x -= dx * k; pos[a].y -= dy * k; pos[b].x += dx * k; pos[b].y += dy * k; }
+    }
+  }
+  const pins = SPOTS.map((s, i) => {
+    const { x0, y0, x, y } = pos[i];
+    const dx = x - x0, dy = y - y0;
+    const lead = Math.hypot(dx, dy) > 1 ? `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#111" stroke-width="2"/><circle cx="${x0.toFixed(1)}" cy="${y0.toFixed(1)}" r="3.5" fill="#111"/>` : "";
+    return `${lead}<g class="pin" data-id="${s.id}" tabindex="0" role="button" aria-label="${i + 1}. ${s.name}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">
+      <circle class="ring" r="24"/><circle class="dot" r="16"/><text text-anchor="middle" dy="5">${i + 1}</text></g>`;
+  }).join("");
+  svg.innerHTML = `<title id="map-title">Map of Lower Manhattan with ${SPOTS.length} skate spots</title>
+    <defs><clipPath id="wclip"><path d="${water}"/></clipPath></defs>
+    <path class="water" d="${water}"/>
+    <g class="hatch" clip-path="url(#wclip)">${hatch}</g>
+    ${label(40.7150, -74.0198, "HUDSON RIVER", "river", -90)}
+    ${PIERS.map(p => `<path class="pier" d="${path(p)} Z"/>`).join("")}
+    <path class="shore" d="${path(SHORE)}"/>
+    ${streets}
+    ${label(40.7192, -74.0085, "TRIBECA", "hood")}
+    ${label(40.7112, -74.0158, "BATTERY", "hood")}${label(40.7103, -74.0158, "PARK CITY", "hood")}
+    ${label(40.7085, -74.0078, "FIDI", "hood")}
+    <g class="scale"><line x1="${sx}" y1="${sy}" x2="${sx + m200}" y2="${sy}"/><line x1="${sx}" y1="${sy - 6}" x2="${sx}" y2="${sy + 6}"/><line x1="${sx + m200}" y1="${sy - 6}" x2="${sx + m200}" y2="${sy + 6}"/><text x="${sx + m200 / 2}" y="${sy - 10}" text-anchor="middle">200 M</text></g>
+    ${pins}`;
+  svg.querySelectorAll(".pin").forEach(g => {
+    g.addEventListener("click", () => select(g.dataset.id, true));
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(g.dataset.id, true); } });
+  });
+}
+
+const fmtDate = t => new Date(t.replace(" ", "T")).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const fmtTime = t => new Date(t.replace(" ", "T")).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+function drawList() {
+  document.getElementById("list").innerHTML = SPOTS.map((s, i) => `
+    <li><button class="card" data-id="${s.id}" type="button">
+      <span class="num">${i + 1}</span>
+      <img src="${s.photos[0].thumb}" alt="">
+      <span><h3>${s.name}</h3><p>${s.area || "NYC"}</p></span>
+      <span class="count">${s.photos.length} photo${s.photos.length > 1 ? "s" : ""}</span>
+    </button></li>`).join("");
+  document.querySelectorAll(".card").forEach(b => b.addEventListener("click", () => select(b.dataset.id, true)));
+  document.getElementById("spot-count").textContent = `${SPOTS.length} spots · ${SPOTS.reduce((a, s) => a + s.photos.length, 0)} photos`;
+}
+
+function select(id, fromUser) {
+  const i = SPOTS.findIndex(s => s.id === id);
+  if (i < 0) return;
+  const s = SPOTS[i];
+  document.querySelectorAll(".pin").forEach(g => g.classList.toggle("on", g.dataset.id === id));
+  document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
+  const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
+  document.getElementById("detail").innerHTML = `
+    <h2>${i + 1}. ${s.name}</h2>
+    <ul class="meta">
+      ${s.area ? `<li>${s.area}</li>` : ""}
+      <li>Shot ${fmtDate(s.photos[0].time)}</li>
+      <li class="coords">${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}</li>
+    </ul>
+    ${s.notes ? `<p class="notes">${s.notes}</p>` : ""}
+    <div class="photos">${s.photos.map((p, j) => `
+      <figure><img src="${p.src}" alt="${s.name}, photo ${j + 1}" loading="lazy">
+      <figcaption>${String(j + 1).padStart(2, "0")} / ${String(s.photos.length).padStart(2, "0")} · ${fmtTime(p.time)}</figcaption></figure>`).join("")}
+    </div>
+    <div class="go">
+      <a class="primary" href="https://maps.apple.com/?ll=${ll}&q=${encodeURIComponent(s.name)}" target="_blank" rel="noopener">Apple Maps</a>
+      <a href="https://www.google.com/maps/search/?api=1&query=${ll}" target="_blank" rel="noopener">Google Maps</a>
+    </div>`;
+  if (fromUser) {
+    try { history.replaceState(null, "", "#" + id); } catch (e) { location.hash = id; }
+    if (window.matchMedia("(max-width: 820px)").matches) document.getElementById("detail").scrollIntoView({ block: "start" });
+  }
+}
+
+drawMap();
+drawList();
+select((location.hash || "").slice(1) || SPOTS[0].id, false);
+window.addEventListener("hashchange", () => select(location.hash.slice(1), false));
+</script>
+</body>
+</html>

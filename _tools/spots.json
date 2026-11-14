@@ -1,0 +1,68 @@
+{
+ "spots": [
+  {
+   "id": "pier-wallride",
+   "name": "Pier Wallride",
+   "area": "Hudson River Park \u00b7 Tribeca",
+   "notes": "",
+   "photos": [
+    {
+     "file": "Pier wallride a.HEIC",
+     "src": "img/pier-wallride-a.jpg",
+     "thumb": "img/pier-wallride-a-sm.jpg",
+     "lat": 40.720814,
+     "lon": -74.013153,
+     "time": "2026-11-06 14:42"
+    },
+    {
+     "file": "Pier wallride b.HEIC",
+     "src": "img/pier-wallride-b.jpg",
+     "thumb": "img/pier-wallride-b-sm.jpg",
+     "lat": 40.721211,
+     "lon": -74.013083,
+     "time": "2026-11-06 14:42"
+    }
+   ]
+  },
+  {
+   "id": "pier-3-block",
+   "name": "Pier 3 Block",
+   "area": "Hudson River Park \u00b7 Tribeca",
+   "notes": "",
+   "photos": [
+    {
+     "file": "Pier 3 Block a.HEIC",
+     "src": "img/pier-3-block-a.jpg",
+     "thumb": "img/pier-3-block-a-sm.jpg",
+     "lat": 40.720669,
+     "lon": -74.012764,
+     "time": "2026-11-06 14:41"
+    },
+    {
+     "file": "Pier 3 Block b.HEIC",
+     "src": "img/pier-3-block-b.jpg",
+     "thumb": "img/pier-3-block-b-sm.jpg",
+     "lat": 40.721317,
+     "lon": -74.014717,
+     "time": "2026-11-06 14:41"
+    }
+   ]
+  },
+  {
+   "id": "u-vents",
+   "name": "U Vents",
+   "area": "Broadway \u00b7 Financial District",
+   "notes": "",
+   "photos": [
+    {
+     "file": "U Vents.HEIC",
+     "src": "img/u-vents.jpg",
+     "thumb": "img/u-vents-sm.jpg",
+     "lat": 40.711156,
+     "lon": -74.009681,
+     "time": "2026-11-06 16:10"
+    }
+   ]
+  }
+ ]
+}
