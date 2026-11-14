@@ -70,6 +70,8 @@ main {
 .pin:hover, .pin:focus-visible { background: var(--hot); color: var(--ink); }
 .pin.on { background: var(--hot); color: var(--ink); box-shadow: 0 0 0 2px var(--ink), 0 0 0 7px var(--hot); }
 .pin:focus { outline: none; }
+.pin.spot { width: 18px; height: 18px; border-width: 3px; }
+.pin.spot.on { box-shadow: 0 0 0 2px var(--ink), 0 0 0 6px var(--hot); }
 .pin.cluster { background: var(--paper); color: var(--ink); border: 3px solid var(--ink); box-shadow: 0 0 0 3px var(--paper); font-size: 14px; }
 .pin.cluster:hover, .pin.cluster:focus-visible { background: var(--hot); }
 .map-tools { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; z-index: 2; }
@@ -108,7 +110,7 @@ main {
 .list { list-style: none; margin: 0; padding: 0; border-bottom: 3px solid var(--ink); }
 .list li + li { border-top: 1px dashed var(--ink); }
 .card {
-  width: 100%; display: grid; grid-template-columns: 34px 64px 1fr auto; align-items: center; gap: 14px;
+  width: 100%; display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 14px;
   padding: 12px 16px; background: none; border: 0; color: inherit; text-align: left; cursor: pointer; font: inherit;
 }
 .card:hover { background: var(--paper-2); }
@@ -3597,8 +3599,8 @@ function drawMap() {
   // Spots live in a clustered GeoJSON source; pins and cluster counts are DOM markers.
   const makePin = s => {
     const el = document.createElement("button");
-    el.type = "button"; el.className = "pin"; el.dataset.id = s.id; el.textContent = s.num;
-    el.setAttribute("aria-label", `${s.num}. ${s.name}`);
+    el.type = "button"; el.className = "pin spot"; el.dataset.id = s.id;
+    el.setAttribute("aria-label", s.name); el.title = s.name;
     el.addEventListener("click", e => { e.stopPropagation(); select(s.id, true); });
     return new maplibregl.Marker({ element: el }).setLngLat([s.lon, s.lat]);
   };
@@ -3686,7 +3688,6 @@ function drawList() {
   const list = document.getElementById("list");
   list.innerHTML = vis.length ? vis.map(s => `
     <li><button class="card" data-id="${s.id}" type="button">
-      <span class="num">${s.num}</span>
       <img src="${s.photos[0].thumb}" alt="">
       <span><h3>${s.name}</h3><p>${s.area || "NYC"}</p>${state.me ? `<span class="dist">${fmtDist(km(state.me, s))}</span>` : ""}</span>
       <span class="count">${s.photos.length} photo${s.photos.length > 1 ? "s" : ""}</span>
@@ -3745,7 +3746,7 @@ function select(id, fromUser) {
   document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
   const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
   document.getElementById("detail").innerHTML = `
-    <h2>${s.num}. ${s.name}</h2>
+    <h2>${s.name}</h2>
     <ul class="meta">
       ${s.area ? `<li>${s.area}</li>` : ""}
       <li>Shot ${fmtDate(s.photos[0].time)}</li>
