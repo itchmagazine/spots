@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Itch NYC Spot Map</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -54,28 +56,28 @@ main {
 }
 @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
 
-.map-wrap { border-right: 3px solid var(--ink); padding: 16px; }
+.map-wrap { border-right: 3px solid var(--ink); position: relative; }
 @media (max-width: 820px) { .map-wrap { border-right: 0; border-bottom: 3px solid var(--ink); } }
-#map { width: 100%; height: auto; display: block; max-height: 82vh; margin: 0 auto; }
-#map .water { fill: var(--water); }
-#map .hatch line { stroke: var(--ink); stroke-width: .6; opacity: .25; }
-#map .pier { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
-#map .shore { fill: none; stroke: var(--ink); stroke-width: 3; }
-#map .street { fill: none; stroke: var(--ink); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .14; }
-#map .street.main { opacity: .22; stroke-width: 10; }
-#map .st-label { font: 600 10px var(--body); fill: var(--ink-soft); letter-spacing: .12em; text-transform: uppercase; }
-#map .hood { font: 22px var(--display); fill: var(--ink); opacity: .16; letter-spacing: .02em; }
-#map .river { font: 26px var(--display); fill: var(--ink); opacity: .35; letter-spacing: .3em; }
-#map .scale text { font: 600 10px var(--body); fill: var(--ink); }
-#map .scale line { stroke: var(--ink); stroke-width: 2; }
-.pin { cursor: pointer; }
-.pin circle.dot { fill: var(--ink); stroke: var(--paper); stroke-width: 3; transition: fill .15s; }
-.pin text { font: 14px var(--display); fill: var(--paper); pointer-events: none; }
-.pin .ring { fill: none; stroke: var(--hot); stroke-width: 3; opacity: 0; }
-.pin:hover circle.dot, .pin:focus-visible circle.dot, .pin.on circle.dot { fill: var(--hot); }
-.pin.on .ring { opacity: 1; }
+#map { width: 100%; height: min(82vh, 900px); min-height: 460px; background: var(--water); }
+@media (max-width: 820px) { #map { height: 62vh; min-height: 380px; } }
+/* Real map tiles, pushed to a photocopied grey */
+#map .maplibregl-canvas { filter: grayscale(1) contrast(1.12) brightness(.97); }
+.pin {
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  background: var(--ink); color: var(--paper); border: 3px solid var(--paper);
+  font: 15px var(--display); box-shadow: 0 0 0 2px var(--ink); transition: background .15s;
+}
+.pin:hover, .pin:focus-visible { background: var(--hot); color: var(--ink); }
+.pin.on { background: var(--hot); color: var(--ink); box-shadow: 0 0 0 2px var(--ink), 0 0 0 7px var(--hot); }
 .pin:focus { outline: none; }
-.map-note { font-size: 11px; color: var(--ink-soft); margin: 10px 0 0; text-align: center; }
+.map-tools { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; z-index: 2; }
+.map-tools button {
+  font: 12px var(--display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
+  padding: 8px 12px; border: 3px solid var(--ink); background: var(--paper); color: var(--ink);
+}
+.map-tools button:hover { background: var(--ink); color: var(--paper); }
+.maplibregl-ctrl-attrib { font-family: var(--body); font-size: 10px; }
+.map-error { position: absolute; inset: 0; display: none; place-items: center; padding: 24px; text-align: center; background: var(--paper-2); font-size: 13px; }
 
 .side { display: flex; flex-direction: column; min-width: 0; }
 .list { list-style: none; margin: 0; padding: 0; border-bottom: 3px solid var(--ink); }
@@ -124,9 +126,13 @@ footer { padding: 14px clamp(16px, 4vw, 40px); border-top: 3px solid var(--ink);
 </header>
 
 <main>
-  <section class="map-wrap" aria-label="Spot map of Lower Manhattan">
-    <svg id="map" role="img" aria-labelledby="map-title"></svg>
-    <p class="map-note">Pins are exact GPS from the photos. Streets are drawn by hand and approximate.</p>
+  <section class="map-wrap" aria-label="Map of New York City skate spots">
+    <div class="map-tools">
+      <button type="button" id="fit-spots">Spots</button>
+      <button type="button" id="fit-nyc">All NYC</button>
+    </div>
+    <div id="map"></div>
+    <div class="map-error" id="map-error">The map couldn't load. The spot list and directions still work.</div>
   </section>
 
   <section class="side">
@@ -136,7 +142,7 @@ footer { padding: 14px clamp(16px, 4vw, 40px); border-top: 3px solid var(--ink);
 </main>
 
 <footer>
-  <span>Itch Magazine · Spot Map Vol. 1</span>
+  <span>Itch Magazine · Spot Map Vol. 1 · Map data © OpenStreetMap contributors</span>
   <span id="spot-count"></span>
 </footer>
 
@@ -204,88 +210,63 @@ const SPOTS = [
  }
 ];
 
-// ---- Map projection (equirectangular, corrected for latitude) ----
 // Each spot's pin sits at the average of its photos' GPS points.
 SPOTS.forEach(s => {
   s.lat = s.photos.reduce((a, p) => a + p.lat, 0) / s.photos.length;
   s.lon = s.photos.reduce((a, p) => a + p.lon, 0) / s.photos.length;
 });
-// Frame: the drawn Lower Manhattan area, grown to fit every spot.
-const BOUNDS = { latMin: 40.7075, latMax: 40.7245, lonMin: -74.0210, lonMax: -74.0045 };
-SPOTS.forEach(s => {
-  BOUNDS.latMin = Math.min(BOUNDS.latMin, s.lat - 0.002); BOUNDS.latMax = Math.max(BOUNDS.latMax, s.lat + 0.002);
-  BOUNDS.lonMin = Math.min(BOUNDS.lonMin, s.lon - 0.0025); BOUNDS.lonMax = Math.max(BOUNDS.lonMax, s.lon + 0.0025);
-});
-const K = Math.cos((BOUNDS.latMin + BOUNDS.latMax) / 2 * Math.PI / 180);
-const H = 1000;
-const W = Math.round(H * (BOUNDS.lonMax - BOUNDS.lonMin) * K / (BOUNDS.latMax - BOUNDS.latMin));
-const px = (lat, lon) => [
-  (lon - BOUNDS.lonMin) / (BOUNDS.lonMax - BOUNDS.lonMin) * W,
-  (BOUNDS.latMax - lat) / (BOUNDS.latMax - BOUNDS.latMin) * H
-];
-const path = pts => pts.map((p, i) => (i ? "L" : "M") + px(p[0], p[1]).map(n => n.toFixed(1)).join(",")).join(" ");
 
-const SHORE = [[40.7245,-74.0114],[40.7230,-74.0119],[40.7215,-74.0128],[40.7200,-74.0133],[40.7185,-74.0140],[40.7172,-74.0150],[40.7160,-74.0165],[40.7150,-74.0175],[40.7130,-74.0182],[40.7110,-74.0187],[40.7090,-74.0185],[40.7075,-74.0183]];
-const PIERS = [
-  [[40.7218,-74.0127],[40.7218,-74.0168],[40.7209,-74.0168],[40.7209,-74.0130]],
-  [[40.7203,-74.0131],[40.7203,-74.0164],[40.7194,-74.0164],[40.7194,-74.0134]]
-];
-const STREETS = [
-  { name: "West St", main: true, pts: [[40.7245,-74.0104],[40.7215,-74.0117],[40.7185,-74.0129],[40.7160,-74.0133],[40.7140,-74.0133],[40.7110,-74.0138],[40.7075,-74.0143]], label: [40.7228,-74.0111, -68] },
-  { name: "Broadway", main: true, pts: [[40.7075,-74.0119],[40.7110,-74.0096],[40.7141,-74.0062],[40.7160,-74.0045]], label: [40.7128,-74.0072, -50] },
-  { name: "Chambers St", pts: [[40.7176,-74.0136],[40.7141,-74.0062],[40.7128,-74.0045]], label: [40.7162,-74.0106, 62] },
-  { name: "Vesey St", pts: [[40.7146,-74.0133],[40.7117,-74.0091]], label: [40.7135,-74.0118, 52] },
-  { name: "Canal St", pts: [[40.7238,-74.0108],[40.7225,-74.0060],[40.7208,-74.0045]], label: [40.7233,-74.0088, 17] }
-];
+// ---- Real map: MapLibre + OpenFreeMap (OpenStreetMap data) ----
+const NYC = [[-74.26, 40.49], [-73.70, 40.92]];
+let map = null;
+const markers = {};
+
+function spotBounds() {
+  const lons = SPOTS.map(s => s.lon), lats = SPOTS.map(s => s.lat);
+  return [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]];
+}
+function fitSpots(animate) {
+  if (!map) return;
+  const pad = window.matchMedia("(max-width: 820px)").matches ? 50 : 90;
+  map.fitBounds(spotBounds(), { padding: pad, maxZoom: 16, duration: animate ? 800 : 0 });
+}
 
 function drawMap() {
-  const svg = document.getElementById("map");
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  const water = path(SHORE) + " " + path([[40.7075,-74.0215],[40.7245,-74.0215]]).replace("M","L") + " Z";
-  let hatch = "";
-  for (let y = -W; y < H; y += 14) hatch += `<line x1="0" y1="${y}" x2="${W}" y2="${y + W}"/>`;
-  const streets = STREETS.map(s => {
-    const [x, y] = px(s.label[0], s.label[1]);
-    return `<path class="street${s.main ? " main" : ""}" d="${path(s.pts)}"/>` +
-      `<text class="st-label" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${s.label[2]})" text-anchor="middle">${s.name}</text>`;
-  }).join("");
-  const label = (lat, lon, txt, cls, rot = 0) => { const [x, y] = px(lat, lon); return `<text class="${cls}" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot})" text-anchor="middle">${txt}</text>`; };
-  // 200 m scale bar
-  const m200 = 200 / (111320 * K) / (BOUNDS.lonMax - BOUNDS.lonMin) * W;
-  const sx = W - 40 - m200, sy = H - 30;
-  // Push pins apart when they would overlap; a leader line marks the true GPS point.
-  const pos = SPOTS.map(s => { const [x, y] = px(s.lat, s.lon); return { x0: x, y0: y, x, y }; });
-  for (let it = 0; it < 60; it++) {
-    for (let a = 0; a < pos.length; a++) for (let b = a + 1; b < pos.length; b++) {
-      let dx = pos[b].x - pos[a].x, dy = pos[b].y - pos[a].y, d = Math.hypot(dx, dy);
-      if (d < 38) { if (d < 0.01) { dx = 1; dy = -1; d = Math.SQRT2; } const k = (38 - d) / 2 / d;
-        pos[a].x -= dx * k; pos[a].y -= dy * k; pos[b].x += dx * k; pos[b].y += dy * k; }
-    }
-  }
-  const pins = SPOTS.map((s, i) => {
-    const { x0, y0, x, y } = pos[i];
-    const dx = x - x0, dy = y - y0;
-    const lead = Math.hypot(dx, dy) > 1 ? `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#111" stroke-width="2"/><circle cx="${x0.toFixed(1)}" cy="${y0.toFixed(1)}" r="3.5" fill="#111"/>` : "";
-    return `${lead}<g class="pin" data-id="${s.id}" tabindex="0" role="button" aria-label="${i + 1}. ${s.name}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">
-      <circle class="ring" r="24"/><circle class="dot" r="16"/><text text-anchor="middle" dy="5">${i + 1}</text></g>`;
-  }).join("");
-  svg.innerHTML = `<title id="map-title">Map of Lower Manhattan with ${SPOTS.length} skate spots</title>
-    <defs><clipPath id="wclip"><path d="${water}"/></clipPath></defs>
-    <path class="water" d="${water}"/>
-    <g class="hatch" clip-path="url(#wclip)">${hatch}</g>
-    ${label(40.7150, -74.0198, "HUDSON RIVER", "river", -90)}
-    ${PIERS.map(p => `<path class="pier" d="${path(p)} Z"/>`).join("")}
-    <path class="shore" d="${path(SHORE)}"/>
-    ${streets}
-    ${label(40.7192, -74.0085, "TRIBECA", "hood")}
-    ${label(40.7112, -74.0158, "BATTERY", "hood")}${label(40.7103, -74.0158, "PARK CITY", "hood")}
-    ${label(40.7085, -74.0078, "FIDI", "hood")}
-    <g class="scale"><line x1="${sx}" y1="${sy}" x2="${sx + m200}" y2="${sy}"/><line x1="${sx}" y1="${sy - 6}" x2="${sx}" y2="${sy + 6}"/><line x1="${sx + m200}" y1="${sy - 6}" x2="${sx + m200}" y2="${sy + 6}"/><text x="${sx + m200 / 2}" y="${sy - 10}" text-anchor="middle">200 M</text></g>
-    ${pins}`;
-  svg.querySelectorAll(".pin").forEach(g => {
-    g.addEventListener("click", () => select(g.dataset.id, true));
-    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(g.dataset.id, true); } });
+  const fail = () => { document.getElementById("map-error").style.display = "grid"; };
+  if (!window.maplibregl) { fail(); return; }
+  try {
+    map = new maplibregl.Map({
+      container: "map",
+      style: "https://tiles.openfreemap.org/styles/positron",
+      bounds: SPOTS.length ? spotBounds() : NYC,
+      fitBoundsOptions: { padding: 90, maxZoom: 16 },
+      maxBounds: [[-74.6, 40.35], [-73.4, 41.05]],
+      minZoom: 9,
+      attributionControl: { compact: true },
+      cooperativeGestures: window.matchMedia("(max-width: 820px)").matches
+    });
+  } catch (e) { fail(); return; }
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  map.on("load", () => {
+    // Recolor the base style toward the zine palette.
+    const css = getComputedStyle(document.documentElement);
+    const paper = css.getPropertyValue("--paper").trim(), water = css.getPropertyValue("--water").trim();
+    map.getStyle().layers.forEach(l => {
+      try {
+        if (l.type === "background") map.setPaintProperty(l.id, "background-color", paper);
+        if (l.type === "fill" && /water/.test(l.id)) map.setPaintProperty(l.id, "fill-color", water);
+      } catch (e) {}
+    });
   });
+  SPOTS.forEach((s, i) => {
+    const el = document.createElement("button");
+    el.type = "button"; el.className = "pin"; el.dataset.id = s.id; el.textContent = i + 1;
+    el.setAttribute("aria-label", `${i + 1}. ${s.name}`);
+    el.addEventListener("click", e => { e.stopPropagation(); select(s.id, true); });
+    markers[s.id] = new maplibregl.Marker({ element: el }).setLngLat([s.lon, s.lat]).addTo(map);
+  });
+  document.getElementById("fit-spots").addEventListener("click", () => fitSpots(true));
+  document.getElementById("fit-nyc").addEventListener("click", () => map.fitBounds(NYC, { padding: 20, duration: 800 }));
 }
 
 const fmtDate = t => new Date(t.replace(" ", "T")).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -308,6 +289,7 @@ function select(id, fromUser) {
   if (i < 0) return;
   const s = SPOTS[i];
   document.querySelectorAll(".pin").forEach(g => g.classList.toggle("on", g.dataset.id === id));
+  if (map && fromUser) map.easeTo({ center: [s.lon, s.lat], zoom: Math.max(map.getZoom(), 15), duration: 700 });
   document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
   const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
   document.getElementById("detail").innerHTML = `
