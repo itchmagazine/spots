@@ -1874,23 +1874,6 @@
    ]
   },
   {
-   "id": "gap-to-grind-loading-dock",
-   "name": "Gap To Grind Loading Dock",
-   "area": "East Williamsburg \u00b7 Brooklyn",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "gap to grind loading dock b.HEIC",
-     "src": "img/gap-to-grind-loading-dock-b.jpg",
-     "thumb": "img/gap-to-grind-loading-dock-b-sm.jpg",
-     "lat": 40.710625,
-     "lon": -73.934106,
-     "time": "2023-07-26 00:50"
-    }
-   ]
-  },
-  {
    "id": "gap-to-stair-grind-fort-green",
    "name": "Gap To Stair Grind Fort Greene",
    "area": "DUMBO \u00b7 Brooklyn",
@@ -2089,6 +2072,14 @@
      "thumb": "img/loading-dock-gap-to-grind-sm.jpg",
      "lat": 40.710608,
      "lon": -73.934167,
+     "time": "2023-07-26 00:50"
+    },
+    {
+     "file": "gap to grind loading dock b.HEIC",
+     "src": "img/gap-to-grind-loading-dock-b.jpg",
+     "thumb": "img/gap-to-grind-loading-dock-b-sm.jpg",
+     "lat": 40.710625,
+     "lon": -73.934106,
      "time": "2023-07-26 00:50"
     }
    ]
