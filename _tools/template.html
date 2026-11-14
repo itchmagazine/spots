@@ -205,6 +205,17 @@ function drawMap() {
     el.addEventListener("click", e => { e.stopPropagation(); select(s.id, true); });
     markers[s.id] = new maplibregl.Marker({ element: el }).setLngLat([s.lon, s.lat]).addTo(map);
   });
+  // Nudge pins apart when they'd overlap at the current zoom.
+  const spread = () => {
+    const pos = SPOTS.map(s => { const pt = map.project([s.lon, s.lat]); return { x: pt.x, y: pt.y, dx: 0, dy: 0 }; });
+    for (let it = 0; it < 40; it++) for (let a = 0; a < pos.length; a++) for (let b = a + 1; b < pos.length; b++) {
+      let vx = (pos[b].x + pos[b].dx) - (pos[a].x + pos[a].dx), vy = (pos[b].y + pos[b].dy) - (pos[a].y + pos[a].dy), d = Math.hypot(vx, vy);
+      if (d < 40) { if (d < 0.01) { vx = 1; vy = 0; d = 1; } const k = (40 - d) / 2 / d;
+        pos[a].dx -= vx * k; pos[a].dy -= vy * k; pos[b].dx += vx * k; pos[b].dy += vy * k; }
+    }
+    SPOTS.forEach((s, i) => markers[s.id].setOffset([pos[i].dx, pos[i].dy]));
+  };
+  map.on("load", spread); map.on("zoomend", spread); map.on("moveend", spread);
   document.getElementById("fit-spots").addEventListener("click", () => fitSpots(true));
   document.getElementById("fit-nyc").addEventListener("click", () => map.fitBounds(NYC, { padding: 20, duration: 800 }));
 }
