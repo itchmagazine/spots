@@ -70,6 +70,8 @@ main {
 .pin:hover, .pin:focus-visible { background: var(--hot); color: var(--ink); }
 .pin.on { background: var(--hot); color: var(--ink); box-shadow: 0 0 0 2px var(--ink), 0 0 0 7px var(--hot); }
 .pin:focus { outline: none; }
+.pin.cluster { background: var(--paper); color: var(--ink); border: 3px solid var(--ink); box-shadow: 0 0 0 3px var(--paper); font-size: 14px; }
+.pin.cluster:hover, .pin.cluster:focus-visible { background: var(--hot); }
 .map-tools { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; z-index: 2; }
 .map-tools button {
   font: 12px var(--display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
@@ -203,6 +205,10 @@ function fitSpots(animate) {
   map.fitBounds(spotBounds(), { padding: pad, maxZoom: 16, duration: animate ? 800 : 0 });
 }
 
+function spotsGeo(list) {
+  return { type: "FeatureCollection", features: list.map(s => ({ type: "Feature", properties: { id: s.id }, geometry: { type: "Point", coordinates: [s.lon, s.lat] } })) };
+}
+
 function drawMap() {
   const fail = () => { document.getElementById("map-error").style.display = "grid"; };
   if (!window.maplibregl) { fail(); return; }
@@ -230,24 +236,52 @@ function drawMap() {
       } catch (e) {}
     });
   });
-  SPOTS.forEach((s, i) => {
+  // Spots live in a clustered GeoJSON source; pins and cluster counts are DOM markers.
+  const makePin = s => {
     const el = document.createElement("button");
-    el.type = "button"; el.className = "pin"; el.dataset.id = s.id; el.textContent = i + 1;
-    el.setAttribute("aria-label", `${i + 1}. ${s.name}`);
+    el.type = "button"; el.className = "pin"; el.dataset.id = s.id; el.textContent = s.num;
+    el.setAttribute("aria-label", `${s.num}. ${s.name}`);
     el.addEventListener("click", e => { e.stopPropagation(); select(s.id, true); });
-    markers[s.id] = new maplibregl.Marker({ element: el }).setLngLat([s.lon, s.lat]).addTo(map);
-  });
-  // Nudge pins apart when they'd overlap at the current zoom.
-  const spread = () => {
-    const pos = SPOTS.map(s => { const pt = map.project([s.lon, s.lat]); return { x: pt.x, y: pt.y, dx: 0, dy: 0 }; });
-    for (let it = 0; it < 40; it++) for (let a = 0; a < pos.length; a++) for (let b = a + 1; b < pos.length; b++) {
-      let vx = (pos[b].x + pos[b].dx) - (pos[a].x + pos[a].dx), vy = (pos[b].y + pos[b].dy) - (pos[a].y + pos[a].dy), d = Math.hypot(vx, vy);
-      if (d < 40) { if (d < 0.01) { vx = 1; vy = 0; d = 1; } const k = (40 - d) / 2 / d;
-        pos[a].dx -= vx * k; pos[a].dy -= vy * k; pos[b].dx += vx * k; pos[b].dy += vy * k; }
-    }
-    SPOTS.forEach((s, i) => markers[s.id].setOffset([pos[i].dx, pos[i].dy]));
+    return new maplibregl.Marker({ element: el }).setLngLat([s.lon, s.lat]);
   };
-  map.on("load", spread); map.on("zoomend", spread); map.on("moveend", spread);
+  SPOTS.forEach(s => { markers[s.id] = makePin(s); });
+  const clusterMarkers = {};
+  let shown = {};
+  window.updateMarkers = () => {
+    if (!map.getSource("spots") || !map.isSourceLoaded("spots")) return;
+    const next = {};
+    map.querySourceFeatures("spots").forEach(f => {
+      const pr = f.properties;
+      if (pr.cluster) {
+        const key = "c" + pr.cluster_id;
+        if (next[key]) return;
+        let m = clusterMarkers[key];
+        if (!m) {
+          const el = document.createElement("button");
+          el.type = "button"; el.className = "pin cluster";
+          const n = pr.point_count, size = Math.min(64, 34 + Math.sqrt(n) * 4);
+          el.style.width = el.style.height = size + "px";
+          el.textContent = n; el.setAttribute("aria-label", `${n} spots here, zoom in`);
+          el.addEventListener("click", ev => {
+            ev.stopPropagation();
+            map.getSource("spots").getClusterExpansionZoom(pr.cluster_id)
+              .then(z => map.easeTo({ center: f.geometry.coordinates, zoom: Math.min(z + 0.3, 18), duration: 500 }))
+              .catch(() => map.easeTo({ center: f.geometry.coordinates, zoom: map.getZoom() + 2 }));
+          });
+          m = clusterMarkers[key] = new maplibregl.Marker({ element: el }).setLngLat(f.geometry.coordinates);
+        }
+        next[key] = m;
+      } else if (markers[pr.id]) next[pr.id] = markers[pr.id];
+    });
+    Object.keys(shown).forEach(k => { if (!next[k]) shown[k].remove(); });
+    Object.keys(next).forEach(k => { if (!shown[k]) next[k].addTo(map); });
+    shown = next;
+  };
+  map.on("load", () => {
+    map.addSource("spots", { type: "geojson", data: spotsGeo(SPOTS), cluster: true, clusterRadius: 44, clusterMaxZoom: 16 });
+    map.addLayer({ id: "spots-hit", type: "circle", source: "spots", paint: { "circle-radius": 0, "circle-opacity": 0 } });
+    map.on("render", window.updateMarkers);
+  });
   document.getElementById("fit-spots").addEventListener("click", () => fitSpots(true));
   document.getElementById("fit-nyc").addEventListener("click", () => map.fitBounds(NYC, { padding: 20, duration: 800 }));
 }
@@ -305,7 +339,7 @@ function drawList() {
   document.getElementById("result-count").textContent = filtered ? `${vis.length} of ${SPOTS.length} spots` : `${SPOTS.length} spots${state.me ? " · nearest first" : ""}`;
   document.getElementById("clear").hidden = !filtered;
   const ids = new Set(vis.map(s => s.id));
-  Object.entries(markers).forEach(([id, m]) => { m.getElement().style.display = ids.has(id) ? "" : "none"; });
+  if (map && map.getSource && map.getSource("spots")) map.getSource("spots").setData(spotsGeo(vis));
   const cur = (location.hash || "").slice(1);
   document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", b.dataset.id === cur ? "true" : "false"));
   document.getElementById("spot-count").textContent = `${SPOTS.length} spots · ${SPOTS.reduce((a, s) => a + s.photos.length, 0)} photos`;
@@ -349,7 +383,7 @@ function select(id, fromUser) {
   if (i < 0) return;
   const s = SPOTS[i];
   document.querySelectorAll(".pin").forEach(g => g.classList.toggle("on", g.dataset.id === id));
-  if (map && fromUser) map.easeTo({ center: [s.lon, s.lat], zoom: Math.max(map.getZoom(), 15), duration: 700 });
+  if (map && fromUser) map.easeTo({ center: [s.lon, s.lat], zoom: Math.max(map.getZoom(), 17), duration: 700 });
   document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
   const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
   document.getElementById("detail").innerHTML = `
