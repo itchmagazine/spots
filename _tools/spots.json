@@ -209,7 +209,7 @@
   },
   {
    "id": "fort-green-death-trap",
-   "name": "Fort green death trap",
+   "name": "Fort Greene Death Trap",
    "area": "Fort Greene \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -392,25 +392,8 @@
    ]
   },
   {
-   "id": "manhattan-bridge-fence-out-rail",
-   "name": "Manhattan bridge fence out rail",
-   "area": "Chinatown \u00b7 Manhattan",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "Manhattan bridge fence out rail.HEIC",
-     "src": "img/manhattan-bridge-fence-out-rail.jpg",
-     "thumb": "img/manhattan-bridge-fence-out-rail-sm.jpg",
-     "lat": 40.715675,
-     "lon": -73.9944,
-     "time": "2025-10-16 17:16"
-    }
-   ]
-  },
-  {
    "id": "manhattan-bridge-fence-outrail",
-   "name": "Manhattan bridge fence outrail",
+   "name": "Manhattan Bridge Fence Outrail",
    "area": "Chinatown \u00b7 Manhattan",
    "notes": "",
    "tags": [],
@@ -421,6 +404,14 @@
      "thumb": "img/manhattan-bridge-fence-outrail-b-sm.jpg",
      "lat": 40.715683,
      "lon": -73.994347,
+     "time": "2025-10-16 17:16"
+    },
+    {
+     "file": "Manhattan bridge fence out rail.HEIC",
+     "src": "img/manhattan-bridge-fence-out-rail.jpg",
+     "thumb": "img/manhattan-bridge-fence-out-rail-sm.jpg",
+     "lat": 40.715675,
+     "lon": -73.9944,
      "time": "2025-10-16 17:16"
     }
    ]
@@ -800,16 +791,7 @@
      "lat": 40.709767,
      "lon": -74.001533,
      "time": "2025-07-22 20:05"
-    }
-   ]
-  },
-  {
-   "id": "bk-brridge-curved-barrier",
-   "name": "BK Brridge Curved Barrier",
-   "area": "Seaport \u00b7 Manhattan",
-   "notes": "",
-   "tags": [],
-   "photos": [
+    },
     {
      "file": "bk brridge curved barrier.HEIC",
      "src": "img/bk-brridge-curved-barrier.jpg",
@@ -1091,23 +1073,6 @@
    ]
   },
   {
-   "id": "c-town-cobble-banks",
-   "name": "C Town Cobble Banks",
-   "area": "Chinatown \u00b7 Manhattan",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "c town cobble banks.HEIC",
-     "src": "img/c-town-cobble-banks.jpg",
-     "thumb": "img/c-town-cobble-banks-sm.jpg",
-     "lat": 40.713508,
-     "lon": -73.998178,
-     "time": "2023-07-26 17:43"
-    }
-   ]
-  },
-  {
    "id": "circle-3-blocks",
    "name": "Circle 3 Blocks",
    "area": "Boerum Hill \u00b7 Brooklyn",
@@ -1331,6 +1296,14 @@
      "thumb": "img/ctown-cobble-banks-b-sm.jpg",
      "lat": 40.713589,
      "lon": -73.998,
+     "time": "2023-07-26 17:43"
+    },
+    {
+     "file": "c town cobble banks.HEIC",
+     "src": "img/c-town-cobble-banks.jpg",
+     "thumb": "img/c-town-cobble-banks-sm.jpg",
+     "lat": 40.713508,
+     "lon": -73.998178,
      "time": "2023-07-26 17:43"
     }
    ]
@@ -1582,7 +1555,7 @@
   },
   {
    "id": "dime-square-wave",
-   "name": "Dime Square Wave",
+   "name": "Dimes Square Wave",
    "area": "Two Bridges \u00b7 Manhattan",
    "notes": "",
    "tags": [],
@@ -1792,7 +1765,7 @@
   },
   {
    "id": "fort-green-cobble-banks",
-   "name": "Fort Green Cobble Banks",
+   "name": "Fort Greene Cobble Banks",
    "area": "Fort Greene \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -1809,7 +1782,7 @@
   },
   {
    "id": "fort-green-pad",
-   "name": "Fort Green Pad",
+   "name": "Fort Greene Pad",
    "area": "Fort Greene \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -1826,7 +1799,7 @@
   },
   {
    "id": "fort-green-philly-step",
-   "name": "Fort Green Philly Step",
+   "name": "Fort Greene Philly Step",
    "area": "Clinton Hill \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -1843,7 +1816,7 @@
   },
   {
    "id": "fort-green",
-   "name": "Fort Green",
+   "name": "Fort Greene",
    "area": "Brooklyn Heights \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -1919,7 +1892,7 @@
   },
   {
    "id": "gap-to-stair-grind-fort-green",
-   "name": "Gap To Stair Grind Fort Green",
+   "name": "Gap To Stair Grind Fort Greene",
    "area": "DUMBO \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -2261,6 +2234,14 @@
      "lat": 40.709944,
      "lon": -73.996781,
      "time": "2025-04-25 19:20"
+    },
+    {
+     "file": "lowerplayground b.HEIC",
+     "src": "img/lowerplayground-b.jpg",
+     "thumb": "img/lowerplayground-b-sm.jpg",
+     "lat": 40.709944,
+     "lon": -73.996881,
+     "time": "2025-04-25 19:20"
     }
    ]
   },
@@ -2306,23 +2287,6 @@
    ]
   },
   {
-   "id": "lower-step-to-grate",
-   "name": "Lower Step To Grate",
-   "area": "Battery Park \u00b7 Manhattan",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "lower step to grate b.HEIC",
-     "src": "img/lower-step-to-grate-b.jpg",
-     "thumb": "img/lower-step-to-grate-b-sm.jpg",
-     "lat": 40.702606,
-     "lon": -74.010544,
-     "time": "2023-08-05 18:21"
-    }
-   ]
-  },
-  {
    "id": "lower-steps-to-grate",
    "name": "Lower Steps To Grate",
    "area": "Battery Park \u00b7 Manhattan",
@@ -2336,23 +2300,14 @@
      "lat": 40.702622,
      "lon": -74.010436,
      "time": "2023-08-05 18:21"
-    }
-   ]
-  },
-  {
-   "id": "lowerplayground",
-   "name": "Lowerplayground",
-   "area": "Two Bridges \u00b7 Manhattan",
-   "notes": "",
-   "tags": [],
-   "photos": [
+    },
     {
-     "file": "lowerplayground b.HEIC",
-     "src": "img/lowerplayground-b.jpg",
-     "thumb": "img/lowerplayground-b-sm.jpg",
-     "lat": 40.709944,
-     "lon": -73.996881,
-     "time": "2025-04-25 19:20"
+     "file": "lower step to grate b.HEIC",
+     "src": "img/lower-step-to-grate-b.jpg",
+     "thumb": "img/lower-step-to-grate-b-sm.jpg",
+     "lat": 40.702606,
+     "lon": -74.010544,
+     "time": "2023-08-05 18:21"
     }
    ]
   },
@@ -2425,25 +2380,8 @@
    ]
   },
   {
-   "id": "mcarren-pool-square-rail",
-   "name": "Mcarren Pool Square Rail",
-   "area": "Greenpoint \u00b7 Brooklyn",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "mcarren pool square rail.HEIC",
-     "src": "img/mcarren-pool-square-rail.jpg",
-     "thumb": "img/mcarren-pool-square-rail-sm.jpg",
-     "lat": 40.720678,
-     "lon": -73.950325,
-     "time": "2026-09-04 15:50"
-    }
-   ]
-  },
-  {
    "id": "mccarren-pool-square-rail",
-   "name": "Mccarren Pool Square Rail",
+   "name": "McCarren Pool Square Rail",
    "area": "Greenpoint \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -2454,6 +2392,14 @@
      "thumb": "img/mccarren-pool-square-rail-b-sm.jpg",
      "lat": 40.720775,
      "lon": -73.950181,
+     "time": "2026-09-04 15:50"
+    },
+    {
+     "file": "mcarren pool square rail.HEIC",
+     "src": "img/mcarren-pool-square-rail.jpg",
+     "thumb": "img/mcarren-pool-square-rail-sm.jpg",
+     "lat": 40.720678,
+     "lon": -73.950325,
      "time": "2026-09-04 15:50"
     }
    ]
@@ -2643,23 +2589,6 @@
    ]
   },
   {
-   "id": "red-bum-tp-bar",
-   "name": "Red Bum Tp Bar",
-   "area": "Clinton Hill \u00b7 Brooklyn",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "red bum tp bar b.HEIC",
-     "src": "img/red-bum-tp-bar-b.jpg",
-     "thumb": "img/red-bum-tp-bar-b-sm.jpg",
-     "lat": 40.693222,
-     "lon": -73.954072,
-     "time": "2025-09-28 13:25"
-    }
-   ]
-  },
-  {
    "id": "red-bump-to-bar",
    "name": "Red Bump To Bar",
    "area": "Clinton Hill \u00b7 Brooklyn",
@@ -2673,12 +2602,20 @@
      "lat": 40.693225,
      "lon": -73.954047,
      "time": "2025-09-28 13:24"
+    },
+    {
+     "file": "red bum tp bar b.HEIC",
+     "src": "img/red-bum-tp-bar-b.jpg",
+     "thumb": "img/red-bum-tp-bar-b-sm.jpg",
+     "lat": 40.693222,
+     "lon": -73.954072,
+     "time": "2025-09-28 13:25"
     }
    ]
   },
   {
    "id": "redhook-ramp-pad",
-   "name": "Redhook Ramp Pad",
+   "name": "Red Hook Ramp Pad",
    "area": "Columbia Waterfront \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -2820,7 +2757,7 @@
   },
   {
    "id": "selav-drop-over-gap",
-   "name": "Selav Drop Over Gap",
+   "name": "Sela V Drop Over Gap",
    "area": "Navy Yard \u00b7 Brooklyn",
    "notes": "",
    "tags": [],
@@ -3179,6 +3116,14 @@
      "lat": 40.697361,
      "lon": -73.965422,
      "time": "2026-08-24 11:59"
+    },
+    {
+     "file": "wallledge navy yard b.HEIC",
+     "src": "img/wallledge-navy-yard-b.jpg",
+     "thumb": "img/wallledge-navy-yard-b-sm.jpg",
+     "lat": 40.697586,
+     "lon": -73.965867,
+     "time": "2026-08-29 06:46"
     }
    ]
   },
@@ -3196,23 +3141,6 @@
      "lat": 40.686778,
      "lon": -73.97805,
      "time": "2026-10-23 14:44"
-    }
-   ]
-  },
-  {
-   "id": "wallledge-navy-yard",
-   "name": "Wallledge Navy Yard",
-   "area": "Navy Yard \u00b7 Brooklyn",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "wallledge navy yard b.HEIC",
-     "src": "img/wallledge-navy-yard-b.jpg",
-     "thumb": "img/wallledge-navy-yard-b-sm.jpg",
-     "lat": 40.697586,
-     "lon": -73.965867,
-     "time": "2026-08-29 06:46"
     }
    ]
   },
@@ -3247,23 +3175,6 @@
      "lat": 40.730086,
      "lon": -74.002289,
      "time": "2025-04-24 17:16"
-    }
-   ]
-  },
-  {
-   "id": "williamsburb-double-kink",
-   "name": "Williamsburb Double Kink",
-   "area": "South Williamsburg \u00b7 Brooklyn",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "williamsburb double kink.HEIC",
-     "src": "img/williamsburb-double-kink.jpg",
-     "thumb": "img/williamsburb-double-kink-sm.jpg",
-     "lat": 40.702611,
-     "lon": -73.960556,
-     "time": "2023-07-25 21:57"
     }
    ]
   },
@@ -3330,6 +3241,14 @@
      "thumb": "img/williamsburg-double-kink-b-sm.jpg",
      "lat": 40.703164,
      "lon": -73.960861,
+     "time": "2023-07-25 21:57"
+    },
+    {
+     "file": "williamsburb double kink.HEIC",
+     "src": "img/williamsburb-double-kink.jpg",
+     "thumb": "img/williamsburb-double-kink-sm.jpg",
+     "lat": 40.702611,
+     "lon": -73.960556,
      "time": "2023-07-25 21:57"
     }
    ]
@@ -3429,7 +3348,7 @@
   },
   {
    "id": "zucotti-outledge",
-   "name": "Zucotti Outledge",
+   "name": "Zuccotti Outledge",
    "area": "World Trade Center \u00b7 Manhattan",
    "notes": "",
    "tags": [],
