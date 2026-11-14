@@ -12,7 +12,8 @@ usage:
 
 Naming: "Spot Name a.HEIC", "Spot_Name_b.jpg" -> spot "Spot Name"; a trailing single
 letter groups photos of one spot. Matching to existing spots ignores case,
-spaces, underscores and dashes.
+spaces, underscores and dashes. File names in spots.json's "ignored" list are
+never added (photos removed from the map on purpose).
 """
 import sys, os, re, json, glob
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -63,6 +64,7 @@ def load_state(tools):
 def scan(photos, tools):
     st = load_state(tools)
     seen = {ph['file'] for s in st['spots'] for ph in s['photos']}
+    seen |= set(st.get('ignored', []))  # photos removed from the map on purpose
     files = sorted(f for f in os.listdir(photos) if f.lower().endswith(EXTS) and not f.startswith('.'))
     return st, [f for f in files if f not in seen]
 
