@@ -1,0 +1,5912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Itch NYC Spot Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: photocopied zine contact sheet. Filters on top, a 2/3/4-column photo grid, a spot viewer that opens over the page. */
+:root {
+  --paper: #d9d9d4;
+  --paper-2: #c9c9c3;
+  --ink: #111111;
+  --ink-soft: #4a4a46;
+  --hot: #ff3d14;
+  --display: "Archivo Black", "Arial Black", Impact, sans-serif;
+  --body: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.5; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px; }
+button { font: inherit; color: inherit; }
+
+header {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 24px;
+  padding: 20px clamp(16px, 4vw, 40px) 14px; border-bottom: 3px solid var(--ink);
+}
+.logo { font-family: var(--display); font-size: clamp(40px, 9vw, 76px); line-height: .85; letter-spacing: -.02em; margin: 0; text-transform: uppercase; }
+.logo span { color: var(--hot); }
+.tag { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; max-width: 34ch; text-wrap: balance; }
+.nav { display: flex; gap: 8px; width: 100%; }
+.nav a { font: 13px var(--display); text-transform: uppercase; text-decoration: none; padding: 8px 14px; border: 3px solid var(--ink); }
+.nav a[aria-current="page"] { background: var(--ink); color: var(--paper); }
+.nav a:hover { background: var(--hot); color: var(--ink); }
+
+.filters {
+  background: var(--paper);
+  padding: 12px clamp(16px, 4vw, 40px); border-bottom: 3px solid var(--ink); display: grid; gap: 10px;
+}
+@media (min-width: 700px) { .filters { position: sticky; top: 0; z-index: 5; } }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row input[type="search"] {
+  flex: 1 1 220px; min-width: 0; font: 15px var(--body); padding: 9px 12px; color: var(--ink);
+  background: var(--paper); border: 3px solid var(--ink); border-radius: 0;
+}
+.row input::placeholder { color: var(--ink-soft); }
+.select { display: flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.select select {
+  font: 12px var(--display); text-transform: uppercase; padding: 8px 10px; border: 3px solid var(--ink);
+  background: var(--paper); color: var(--ink); border-radius: 0; cursor: pointer;
+}
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.chip {
+  flex: 0 0 auto; font: 11px var(--display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
+  padding: 5px 10px; border: 2px solid var(--ink); background: var(--paper); white-space: nowrap;
+}
+.chip:hover { background: var(--ink); color: var(--paper); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.chip .n { opacity: .6; margin-left: 4px; }
+.status { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); display: flex; justify-content: space-between; gap: 10px; }
+.status button { background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; text-transform: uppercase; letter-spacing: .08em; color: var(--ink); }
+
+.grid {
+  list-style: none; margin: 0; padding: 16px clamp(16px, 4vw, 40px) 40px;
+  display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 700px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } }
+@media (min-width: 1050px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tile { display: block; width: 100%; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+.tile .ph { position: relative; display: block; aspect-ratio: 3 / 4; border: 3px solid var(--ink); background: var(--paper-2); overflow: hidden; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(1) contrast(1.1); transition: filter .2s; }
+.tile:hover img, .tile:focus-visible img { filter: none; }
+.tile .count { position: absolute; top: 6px; right: 6px; background: var(--ink); color: var(--paper); font: 10px var(--display); padding: 2px 6px; letter-spacing: .04em; }
+.tile .dist { position: absolute; bottom: 6px; left: 6px; background: var(--hot); color: var(--ink); font: 10px var(--display); padding: 2px 6px; text-transform: uppercase; }
+.tile h2 { margin: 7px 0 0; font: 14px/1.1 var(--display); text-transform: uppercase; text-wrap: balance; }
+.tile p { margin: 2px 0 0; font-size: 11px; color: var(--ink-soft); }
+.empty { padding: 30px clamp(16px, 4vw, 40px); }
+
+/* Spot viewer */
+dialog {
+  border: 0; padding: 0; margin: 0; width: 100%; max-width: none; height: 100%; max-height: none;
+  background: var(--paper); color: var(--ink);
+}
+dialog::backdrop { background: rgba(17,17,17,.6); }
+@media (min-width: 900px) {
+  dialog { width: min(1100px, 92vw); height: auto; max-height: 90vh; margin: auto; border: 3px solid var(--ink); }
+}
+.viewer { display: grid; gap: 14px; padding: 0 clamp(16px, 3vw, 28px) calc(28px + env(safe-area-inset-bottom)); }
+.vbar {
+  position: sticky; top: 0; z-index: 2; background: var(--paper); display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: calc(12px + env(safe-area-inset-top)) 0 10px; border-bottom: 1px dashed var(--ink);
+}
+.vbar button { font: 12px var(--display); text-transform: uppercase; padding: 8px 12px; border: 3px solid var(--ink); background: var(--hot); cursor: pointer; }
+.vbar .step { display: flex; gap: 6px; }
+.vbar .step button { background: var(--paper); }
+.vbar .step button:hover { background: var(--ink); color: var(--paper); }
+.viewer h3 { margin: 0; font: clamp(28px, 5vw, 44px)/.95 var(--display); text-transform: uppercase; text-wrap: balance; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0; padding: 0; list-style: none; font-size: 12px; }
+.meta li { border: 1.5px solid var(--ink); padding: 2px 8px; text-transform: uppercase; letter-spacing: .05em; }
+.meta li.coords { font-variant-numeric: tabular-nums; text-transform: none; }
+.notes { margin: 0; max-width: 60ch; }
+.vphotos { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .vphotos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.vphotos figure { margin: 0; }
+.vphotos img { width: 100%; display: block; border: 3px solid var(--ink); background: var(--paper-2); aspect-ratio: 3 / 4; object-fit: cover; }
+.vphotos figcaption { font-size: 11px; margin-top: 4px; color: var(--ink-soft); }
+.go { display: flex; flex-wrap: wrap; gap: 10px; }
+.go a { font: 13px var(--display); text-transform: uppercase; text-decoration: none; padding: 10px 14px; border: 3px solid var(--ink); background: var(--paper); }
+.go a:hover { background: var(--ink); color: var(--paper); }
+.go a.primary { background: var(--hot); }
+
+footer { padding: 14px clamp(16px, 4vw, 40px); border-top: 3px solid var(--ink); font-size: 11px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; text-transform: uppercase; letter-spacing: .08em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <h1 class="logo">Itch<span>/</span>NYC Spots</h1>
+  <p class="tag">Every spot, first shot first. Tap one for all its photos and where it is.</p>
+  <nav class="nav" aria-label="Pages"><a href="./">Map</a><a href="gallery.html" aria-current="page">Gallery</a></nav>
+</header>
+
+<section class="filters" aria-label="Sort and filter">
+  <div class="row">
+    <label for="q" class="sr">Search spots</label>
+    <input id="q" type="search" placeholder="Search spots, areas…" autocomplete="off">
+    <label class="select" for="sort">Sort
+      <select id="sort">
+        <option value="new">Newest shot</option>
+        <option value="old">Oldest shot</option>
+        <option value="near">Nearest to me</option>
+        <option value="az">A–Z</option>
+      </select>
+    </label>
+    <label class="select" for="boro">Borough
+      <select id="boro"><option value="">All</option></select>
+    </label>
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="Obstacle type"></div>
+  <p class="status"><span id="count"></span><button type="button" id="clear" hidden>Clear filters</button></p>
+</section>
+
+<ul class="grid" id="grid"></ul>
+
+<dialog id="viewer" aria-labelledby="v-title"></dialog>
+
+<footer>
+  <span>Itch Magazine · Spot Map Vol. 1</span>
+  <span id="total"></span>
+</footer>
+
+<script>
+const SPOTS = [
+ {
+  "id": "pier-wallride",
+  "name": "Pier Wallride",
+  "area": "Hudson River Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Wallride"
+  ],
+  "photos": [
+   {
+    "file": "Pier wallride a.HEIC",
+    "src": "img/pier-wallride-a.jpg",
+    "thumb": "img/pier-wallride-a-sm.jpg",
+    "lat": 40.720814,
+    "lon": -74.013153,
+    "time": "2026-11-06 14:42"
+   },
+   {
+    "file": "Pier wallride b.HEIC",
+    "src": "img/pier-wallride-b.jpg",
+    "thumb": "img/pier-wallride-b-sm.jpg",
+    "lat": 40.721211,
+    "lon": -74.013083,
+    "time": "2026-11-06 14:42"
+   }
+  ]
+ },
+ {
+  "id": "pier-3-block",
+  "name": "Pier 3 Block",
+  "area": "Hudson River Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Block"
+  ],
+  "photos": [
+   {
+    "file": "Pier 3 Block a.HEIC",
+    "src": "img/pier-3-block-a.jpg",
+    "thumb": "img/pier-3-block-a-sm.jpg",
+    "lat": 40.720669,
+    "lon": -74.012764,
+    "time": "2026-11-06 14:41"
+   },
+   {
+    "file": "Pier 3 Block b.HEIC",
+    "src": "img/pier-3-block-b.jpg",
+    "thumb": "img/pier-3-block-b-sm.jpg",
+    "lat": 40.721317,
+    "lon": -74.014717,
+    "time": "2026-11-06 14:41"
+   }
+  ]
+ },
+ {
+  "id": "u-vents",
+  "name": "U Vents",
+  "area": "Financial District \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "U Vents.HEIC",
+    "src": "img/u-vents.jpg",
+    "thumb": "img/u-vents-sm.jpg",
+    "lat": 40.711156,
+    "lon": -74.009681,
+    "time": "2026-11-06 16:10"
+   }
+  ]
+ },
+ {
+  "id": "11-stair",
+  "name": "11 Stair",
+  "area": "World Trade Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "11 stair b.HEIC",
+    "src": "img/11-stair-b.jpg",
+    "thumb": "img/11-stair-b-sm.jpg",
+    "lat": 40.710103,
+    "lon": -74.011672,
+    "time": "2026-01-06 16:11"
+   },
+   {
+    "file": "11 stair.HEIC",
+    "src": "img/11-stair.jpg",
+    "thumb": "img/11-stair-sm.jpg",
+    "lat": 40.710097,
+    "lon": -74.011667,
+    "time": "2026-01-06 16:11"
+   }
+  ]
+ },
+ {
+  "id": "2-up-5-down",
+  "name": "2 Up 5 Down",
+  "area": "Financial District \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "2 up 5 down b.HEIC",
+    "src": "img/2-up-5-down-b.jpg",
+    "thumb": "img/2-up-5-down-b-sm.jpg",
+    "lat": 40.707272,
+    "lon": -74.009422,
+    "time": "2025-03-21 16:45"
+   },
+   {
+    "file": "2 up 5 down.HEIC",
+    "src": "img/2-up-5-down.jpg",
+    "thumb": "img/2-up-5-down-sm.jpg",
+    "lat": 40.707122,
+    "lon": -74.009186,
+    "time": "2025-03-21 16:45"
+   }
+  ]
+ },
+ {
+  "id": "3-block-over-rail",
+  "name": "3 Block Over Rail",
+  "area": "Lower East Side \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Block"
+  ],
+  "photos": [
+   {
+    "file": "3 block over rail.HEIC",
+    "src": "img/3-block-over-rail.jpg",
+    "thumb": "img/3-block-over-rail-sm.jpg",
+    "lat": 40.714711,
+    "lon": -73.988822,
+    "time": "2023-08-04 16:39"
+   }
+  ]
+ },
+ {
+  "id": "5-stair-ledge",
+  "name": "5 Stair Ledge",
+  "area": "Bed-Stuy \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge",
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "5 stair ledge b.HEIC",
+    "src": "img/5-stair-ledge-b.jpg",
+    "thumb": "img/5-stair-ledge-b-sm.jpg",
+    "lat": 40.691569,
+    "lon": -73.949769,
+    "time": "2026-10-15 00:20"
+   },
+   {
+    "file": "5 stair ledge.HEIC",
+    "src": "img/5-stair-ledge.jpg",
+    "thumb": "img/5-stair-ledge-sm.jpg",
+    "lat": 40.691558,
+    "lon": -73.949958,
+    "time": "2026-10-15 00:20"
+   }
+  ]
+ },
+ {
+  "id": "angle-iron-ride-on",
+  "name": "Angle iron ride on",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Wallride"
+  ],
+  "photos": [
+   {
+    "file": "Angle iron ride on.HEIC",
+    "src": "img/angle-iron-ride-on.jpg",
+    "thumb": "img/angle-iron-ride-on-sm.jpg",
+    "lat": 40.714306,
+    "lon": -73.993928,
+    "time": "2026-11-06 16:29"
+   }
+  ]
+ },
+ {
+  "id": "black-bump-to-bar",
+  "name": "Black bump to bar",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "Black bump to bar.HEIC",
+    "src": "img/black-bump-to-bar.jpg",
+    "thumb": "img/black-bump-to-bar-sm.jpg",
+    "lat": 40.701531,
+    "lon": -73.923303,
+    "time": "2025-10-19 01:16"
+   }
+  ]
+ },
+ {
+  "id": "blue-ledge",
+  "name": "Blue ledge",
+  "area": "Lower East Side \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "Blue ledge.HEIC",
+    "src": "img/blue-ledge.jpg",
+    "thumb": "img/blue-ledge-sm.jpg",
+    "lat": 40.714164,
+    "lon": -73.981247,
+    "time": "2025-11-04 16:24"
+   }
+  ]
+ },
+ {
+  "id": "fort-green-death-trap",
+  "name": "Fort Greene Death Trap",
+  "area": "Fort Greene \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "Fort green death trap b.HEIC",
+    "src": "img/fort-green-death-trap-b.jpg",
+    "thumb": "img/fort-green-death-trap-b-sm.jpg",
+    "lat": 40.691708,
+    "lon": -73.977464,
+    "time": "2025-10-19 15:47"
+   },
+   {
+    "file": "Fort green death trap.HEIC",
+    "src": "img/fort-green-death-trap.jpg",
+    "thumb": "img/fort-green-death-trap-sm.jpg",
+    "lat": 40.691911,
+    "lon": -73.977981,
+    "time": "2025-10-19 15:46"
+   }
+  ]
+ },
+ {
+  "id": "k-bridge-curbs",
+  "name": "K bridge curbs",
+  "area": "Kosciuszko Bridge \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "K bridge curbs.HEIC",
+    "src": "img/k-bridge-curbs.jpg",
+    "thumb": "img/k-bridge-curbs-sm.jpg",
+    "lat": 40.731639,
+    "lon": -73.925003,
+    "time": "2025-11-15 10:32"
+   }
+  ]
+ },
+ {
+  "id": "k-bridge-diy",
+  "name": "K bridge diy",
+  "area": "Kosciuszko Bridge \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "DIY"
+  ],
+  "photos": [
+   {
+    "file": "K bridge diy b.HEIC",
+    "src": "img/k-bridge-diy-b.jpg",
+    "thumb": "img/k-bridge-diy-b-sm.jpg",
+    "lat": 40.731725,
+    "lon": -73.925064,
+    "time": "2025-11-15 10:31"
+   },
+   {
+    "file": "K bridge diy.HEIC",
+    "src": "img/k-bridge-diy.jpg",
+    "thumb": "img/k-bridge-diy-sm.jpg",
+    "lat": 40.731756,
+    "lon": -73.924981,
+    "time": "2025-11-15 10:31"
+   }
+  ]
+ },
+ {
+  "id": "k-bridge-hip",
+  "name": "K bridge hip",
+  "area": "Kosciuszko Bridge \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Ramp"
+  ],
+  "photos": [
+   {
+    "file": "K bridge hip.HEIC",
+    "src": "img/k-bridge-hip.jpg",
+    "thumb": "img/k-bridge-hip-sm.jpg",
+    "lat": 40.732217,
+    "lon": -73.924736,
+    "time": "2025-11-15 10:32"
+   }
+  ]
+ },
+ {
+  "id": "k-bridge-ledges",
+  "name": "K bridge ledges",
+  "area": "Kosciuszko Bridge \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "K bridge ledges b.HEIC",
+    "src": "img/k-bridge-ledges-b.jpg",
+    "thumb": "img/k-bridge-ledges-b-sm.jpg",
+    "lat": 40.731178,
+    "lon": -73.925256,
+    "time": "2025-11-15 10:30"
+   },
+   {
+    "file": "K bridge ledges c.HEIC",
+    "src": "img/k-bridge-ledges-c.jpg",
+    "thumb": "img/k-bridge-ledges-c-sm.jpg",
+    "lat": 40.731419,
+    "lon": -73.925339,
+    "time": "2025-11-15 10:39"
+   },
+   {
+    "file": "K bridge ledges.HEIC",
+    "src": "img/k-bridge-ledges.jpg",
+    "thumb": "img/k-bridge-ledges-sm.jpg",
+    "lat": 40.7317,
+    "lon": -73.924667,
+    "time": "2025-11-15 10:29"
+   }
+  ]
+ },
+ {
+  "id": "k-bridge-up-barrier",
+  "name": "K bridge up barrier",
+  "area": "Kosciuszko Bridge \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Barrier"
+  ],
+  "photos": [
+   {
+    "file": "K bridge up barrier b.HEIC",
+    "src": "img/k-bridge-up-barrier-b.jpg",
+    "thumb": "img/k-bridge-up-barrier-b-sm.jpg",
+    "lat": 40.732456,
+    "lon": -73.924575,
+    "time": "2025-11-15 10:22"
+   },
+   {
+    "file": "K bridge up barrier.HEIC",
+    "src": "img/k-bridge-up-barrier.jpg",
+    "thumb": "img/k-bridge-up-barrier-sm.jpg",
+    "lat": 40.732411,
+    "lon": -73.924531,
+    "time": "2025-11-15 10:22"
+   }
+  ]
+ },
+ {
+  "id": "man-bridge-banked-ledge",
+  "name": "Man bridge banked ledge",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "Man bridge banked ledge b.HEIC",
+    "src": "img/man-bridge-banked-ledge-b.jpg",
+    "thumb": "img/man-bridge-banked-ledge-b-sm.jpg",
+    "lat": 40.698047,
+    "lon": -73.985581,
+    "time": "2025-10-24 12:30"
+   },
+   {
+    "file": "Man bridge banked ledge.HEIC",
+    "src": "img/man-bridge-banked-ledge.jpg",
+    "thumb": "img/man-bridge-banked-ledge-sm.jpg",
+    "lat": 40.697944,
+    "lon": -73.985358,
+    "time": "2025-10-24 12:28"
+   }
+  ]
+ },
+ {
+  "id": "manhattan-bridge-curved-ride-on",
+  "name": "Manhattan bridge curved ride on",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Wallride"
+  ],
+  "photos": [
+   {
+    "file": "Manhattan bridge curved ride on.HEIC",
+    "src": "img/manhattan-bridge-curved-ride-on.jpg",
+    "thumb": "img/manhattan-bridge-curved-ride-on-sm.jpg",
+    "lat": 40.715572,
+    "lon": -73.994561,
+    "time": "2025-10-16 17:15"
+   }
+  ]
+ },
+ {
+  "id": "manhattan-bridge-fence-outrail",
+  "name": "Manhattan Bridge Fence Outrail",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Fence"
+  ],
+  "photos": [
+   {
+    "file": "Manhattan bridge fence outrail b.HEIC",
+    "src": "img/manhattan-bridge-fence-outrail-b.jpg",
+    "thumb": "img/manhattan-bridge-fence-outrail-b-sm.jpg",
+    "lat": 40.715683,
+    "lon": -73.994347,
+    "time": "2025-10-16 17:16"
+   },
+   {
+    "file": "Manhattan bridge fence out rail.HEIC",
+    "src": "img/manhattan-bridge-fence-out-rail.jpg",
+    "thumb": "img/manhattan-bridge-fence-out-rail-sm.jpg",
+    "lat": 40.715675,
+    "lon": -73.9944,
+    "time": "2025-10-16 17:16"
+   }
+  ]
+ },
+ {
+  "id": "rail-to-ledge",
+  "name": "Rail to ledge",
+  "area": "Nolita \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "Rail to ledge.HEIC",
+    "src": "img/rail-to-ledge.jpg",
+    "thumb": "img/rail-to-ledge-sm.jpg",
+    "lat": 40.723264,
+    "lon": -73.990967,
+    "time": "2025-11-07 11:59"
+   }
+  ]
+ },
+ {
+  "id": "ramp-pad",
+  "name": "Ramp pad",
+  "area": "Navy Yard \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Pad",
+   "Ramp"
+  ],
+  "photos": [
+   {
+    "file": "Ramp pad.HEIC",
+    "src": "img/ramp-pad.jpg",
+    "thumb": "img/ramp-pad-sm.jpg",
+    "lat": 40.695306,
+    "lon": -73.975311,
+    "time": "2025-10-19 15:59"
+   }
+  ]
+ },
+ {
+  "id": "red-grates",
+  "name": "Red grates",
+  "area": "Nolita \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "Red grates.HEIC",
+    "src": "img/red-grates.jpg",
+    "thumb": "img/red-grates-sm.jpg",
+    "lat": 40.719731,
+    "lon": -73.996125,
+    "time": "2026-02-16 16:23"
+   },
+   {
+    "file": "red grates b.HEIC",
+    "src": "img/red-grates-b.jpg",
+    "thumb": "img/red-grates-b-sm.jpg",
+    "lat": 40.719622,
+    "lon": -73.996169,
+    "time": "2026-02-16 16:23"
+   }
+  ]
+ },
+ {
+  "id": "red-rail",
+  "name": "Red rail",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "Red rail.HEIC",
+    "src": "img/red-rail.jpg",
+    "thumb": "img/red-rail-sm.jpg",
+    "lat": 40.697661,
+    "lon": -73.984642,
+    "time": "2025-10-24 12:31"
+   }
+  ]
+ },
+ {
+  "id": "soho-gap-curb-cut",
+  "name": "Soho gap curb cut",
+  "area": "SoHo \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "Soho gap curb cut b.HEIC",
+    "src": "img/soho-gap-curb-cut-b.jpg",
+    "thumb": "img/soho-gap-curb-cut-b-sm.jpg",
+    "lat": 40.719822,
+    "lon": -74.000558,
+    "time": "2025-10-21 16:56"
+   },
+   {
+    "file": "Soho gap curb cut.HEIC",
+    "src": "img/soho-gap-curb-cut.jpg",
+    "thumb": "img/soho-gap-curb-cut-sm.jpg",
+    "lat": 40.719719,
+    "lon": -74.000672,
+    "time": "2025-10-21 16:56"
+   }
+  ]
+ },
+ {
+  "id": "steep-rail",
+  "name": "Steep rail",
+  "area": "Woodside \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "Steep rail b.HEIC",
+    "src": "img/steep-rail-b.jpg",
+    "thumb": "img/steep-rail-b-sm.jpg",
+    "lat": 40.741303,
+    "lon": -73.906569,
+    "time": "2025-11-15 11:32"
+   },
+   {
+    "file": "Steep rail.HEIC",
+    "src": "img/steep-rail.jpg",
+    "thumb": "img/steep-rail-sm.jpg",
+    "lat": 40.741344,
+    "lon": -73.906769,
+    "time": "2025-11-15 11:32"
+   }
+  ]
+ },
+ {
+  "id": "thin-ledge",
+  "name": "Thin ledge",
+  "area": "Woodside \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "Thin ledge b.HEIC",
+    "src": "img/thin-ledge-b.jpg",
+    "thumb": "img/thin-ledge-b-sm.jpg",
+    "lat": 40.741519,
+    "lon": -73.907556,
+    "time": "2025-11-15 11:26"
+   },
+   {
+    "file": "Thin ledge.HEIC",
+    "src": "img/thin-ledge.jpg",
+    "thumb": "img/thin-ledge-sm.jpg",
+    "lat": 40.741417,
+    "lon": -73.907494,
+    "time": "2025-11-15 11:27"
+   }
+  ]
+ },
+ {
+  "id": "ukraine-ledges",
+  "name": "Ukraine ledges",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "Ukraine ledges a.HEIC",
+    "src": "img/ukraine-ledges-a.jpg",
+    "thumb": "img/ukraine-ledges-a-sm.jpg",
+    "lat": 40.720706,
+    "lon": -73.944619,
+    "time": "2025-10-16 11:32"
+   },
+   {
+    "file": "Ukraine ledges b.HEIC",
+    "src": "img/ukraine-ledges-b.jpg",
+    "thumb": "img/ukraine-ledges-b-sm.jpg",
+    "lat": 40.720772,
+    "lon": -73.944694,
+    "time": "2025-10-16 11:33"
+   },
+   {
+    "file": "Ukraine ledges c.HEIC",
+    "src": "img/ukraine-ledges-c.jpg",
+    "thumb": "img/ukraine-ledges-c-sm.jpg",
+    "lat": 40.720936,
+    "lon": -73.944656,
+    "time": "2025-10-16 11:33"
+   }
+  ]
+ },
+ {
+  "id": "up-barrier",
+  "name": "Up barrier",
+  "area": "Lower East Side \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Barrier"
+  ],
+  "photos": [
+   {
+    "file": "Up barrier.HEIC",
+    "src": "img/up-barrier.jpg",
+    "thumb": "img/up-barrier-sm.jpg",
+    "lat": 40.713572,
+    "lon": -73.987122,
+    "time": "2025-10-26 17:32"
+   }
+  ]
+ },
+ {
+  "id": "wall-st-outledge",
+  "name": "Wall st outledge",
+  "area": "Financial District \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "Wall st outledge b.HEIC",
+    "src": "img/wall-st-outledge-b.jpg",
+    "thumb": "img/wall-st-outledge-b-sm.jpg",
+    "lat": 40.707169,
+    "lon": -74.009322,
+    "time": "2025-11-12 10:34"
+   },
+   {
+    "file": "Wall st outledge.HEIC",
+    "src": "img/wall-st-outledge.jpg",
+    "thumb": "img/wall-st-outledge-sm.jpg",
+    "lat": 40.707011,
+    "lon": -74.011047,
+    "time": "2025-11-12 10:34"
+   }
+  ]
+ },
+ {
+  "id": "zuccotti",
+  "name": "Zuccotti",
+  "area": "Financial District \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "Zuccotti.HEIC",
+    "src": "img/zuccotti.jpg",
+    "thumb": "img/zuccotti-sm.jpg",
+    "lat": 40.709106,
+    "lon": -74.010719,
+    "time": "2025-11-12 13:06"
+   }
+  ]
+ },
+ {
+  "id": "barclays-ledges",
+  "name": "Barclays Ledges",
+  "area": "Prospect Heights \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "barclays ledges b.HEIC",
+    "src": "img/barclays-ledges-b.jpg",
+    "thumb": "img/barclays-ledges-b-sm.jpg",
+    "lat": 40.68365,
+    "lon": -73.976975,
+    "time": "2026-11-04 15:35"
+   },
+   {
+    "file": "barclays ledges.HEIC",
+    "src": "img/barclays-ledges.jpg",
+    "thumb": "img/barclays-ledges-sm.jpg",
+    "lat": 40.683547,
+    "lon": -73.976914,
+    "time": "2026-11-04 15:35"
+   }
+  ]
+ },
+ {
+  "id": "battery-double-set",
+  "name": "Battery Double Set",
+  "area": "Battery Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "battery double set.HEIC",
+    "src": "img/battery-double-set.jpg",
+    "thumb": "img/battery-double-set-sm.jpg",
+    "lat": 40.707164,
+    "lon": -74.015053,
+    "time": "2025-04-20 18:55"
+   }
+  ]
+ },
+ {
+  "id": "battery-gap-into-bank",
+  "name": "Battery Gap Into Bank",
+  "area": "Battery Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "battery gap into bank b.HEIC",
+    "src": "img/battery-gap-into-bank-b.jpg",
+    "thumb": "img/battery-gap-into-bank-b-sm.jpg",
+    "lat": 40.705192,
+    "lon": -74.013925,
+    "time": "2025-04-19 16:47"
+   },
+   {
+    "file": "battery gap into bank.HEIC",
+    "src": "img/battery-gap-into-bank.jpg",
+    "thumb": "img/battery-gap-into-bank-sm.jpg",
+    "lat": 40.705094,
+    "lon": -74.013992,
+    "time": "2025-04-19 16:47"
+   }
+  ]
+ },
+ {
+  "id": "bench-to-bench",
+  "name": "Bench To Bench",
+  "area": "Bed-Stuy \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "bench to bench.HEIC",
+    "src": "img/bench-to-bench.jpg",
+    "thumb": "img/bench-to-bench-sm.jpg",
+    "lat": 40.698814,
+    "lon": -73.938256,
+    "time": "2025-10-05 19:49"
+   }
+  ]
+ },
+ {
+  "id": "bk-bridge-c-barrier",
+  "name": "BK Bridge C Barrier",
+  "area": "Seaport \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Barrier"
+  ],
+  "photos": [
+   {
+    "file": "bk bridge c barrier c.HEIC",
+    "src": "img/bk-bridge-c-barrier-c.jpg",
+    "thumb": "img/bk-bridge-c-barrier-c-sm.jpg",
+    "lat": 40.709625,
+    "lon": -74.001403,
+    "time": "2023-07-25 13:40"
+   }
+  ]
+ },
+ {
+  "id": "bk-bridge-curb-to-street",
+  "name": "BK Bridge Curb To Street",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "bk bridge curb to street.HEIC",
+    "src": "img/bk-bridge-curb-to-street.jpg",
+    "thumb": "img/bk-bridge-curb-to-street-sm.jpg",
+    "lat": 40.712769,
+    "lon": -74.004639,
+    "time": "2023-07-31 18:53"
+   }
+  ]
+ },
+ {
+  "id": "bk-bridge-curved-barrier",
+  "name": "BK Bridge Curved Barrier",
+  "area": "Seaport \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Barrier"
+  ],
+  "photos": [
+   {
+    "file": "bk bridge curved barrier b.HEIC",
+    "src": "img/bk-bridge-curved-barrier-b.jpg",
+    "thumb": "img/bk-bridge-curved-barrier-b-sm.jpg",
+    "lat": 40.709767,
+    "lon": -74.001533,
+    "time": "2025-07-22 20:05"
+   },
+   {
+    "file": "bk brridge curved barrier.HEIC",
+    "src": "img/bk-brridge-curved-barrier.jpg",
+    "thumb": "img/bk-brridge-curved-barrier-sm.jpg",
+    "lat": 40.709611,
+    "lon": -74.001731,
+    "time": "2025-07-22 20:05"
+   }
+  ]
+ },
+ {
+  "id": "bk-bump-over-flat",
+  "name": "BK Bump Over Flat",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "bk bump over flat b.HEIC",
+    "src": "img/bk-bump-over-flat-b.jpg",
+    "thumb": "img/bk-bump-over-flat-b-sm.jpg",
+    "lat": 40.70195,
+    "lon": -73.919303,
+    "time": "2025-03-12 21:51"
+   },
+   {
+    "file": "bk bump over flat.HEIC",
+    "src": "img/bk-bump-over-flat.jpg",
+    "thumb": "img/bk-bump-over-flat-sm.jpg",
+    "lat": 40.701981,
+    "lon": -73.919403,
+    "time": "2025-03-12 21:51"
+   }
+  ]
+ },
+ {
+  "id": "black-ledge",
+  "name": "Black Ledge",
+  "area": "Vinegar Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "black ledge.HEIC",
+    "src": "img/black-ledge.jpg",
+    "thumb": "img/black-ledge-sm.jpg",
+    "lat": 40.7014,
+    "lon": -73.982339,
+    "time": "2026-08-12 09:14"
+   }
+  ]
+ },
+ {
+  "id": "black-ledges-battery-park",
+  "name": "Black Ledges Battery Park",
+  "area": "Battery Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "black ledges battery park.HEIC",
+    "src": "img/black-ledges-battery-park.jpg",
+    "thumb": "img/black-ledges-battery-park-sm.jpg",
+    "lat": 40.705119,
+    "lon": -74.015892,
+    "time": "2023-08-04 20:09"
+   }
+  ]
+ },
+ {
+  "id": "blubba",
+  "name": "Blubba",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "blubba.HEIC",
+    "src": "img/blubba.jpg",
+    "thumb": "img/blubba-sm.jpg",
+    "lat": 40.714481,
+    "lon": -74.002625,
+    "time": "2023-07-25 14:37"
+   }
+  ]
+ },
+ {
+  "id": "blue-bank-wall-rail",
+  "name": "Blue Bank Wall Rail",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "blue bank wall rail.HEIC",
+    "src": "img/blue-bank-wall-rail.jpg",
+    "thumb": "img/blue-bank-wall-rail-sm.jpg",
+    "lat": 40.707694,
+    "lon": -73.948264,
+    "time": "2023-07-21 20:19"
+   }
+  ]
+ },
+ {
+  "id": "blue-grate-to-pad-window-sill",
+  "name": "Blue Grate To Pad/Window Sill",
+  "area": "Bed-Stuy \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Pad",
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "blue grate to pad:window sill.HEIC",
+    "src": "img/blue-grate-to-pad-window-sill.jpg",
+    "thumb": "img/blue-grate-to-pad-window-sill-sm.jpg",
+    "lat": 40.693883,
+    "lon": -73.948631,
+    "time": "2023-07-22 15:59"
+   }
+  ]
+ },
+ {
+  "id": "brooklyn-banks",
+  "name": "Brooklyn Banks",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "brooklyn banks b.HEIC",
+    "src": "img/brooklyn-banks-b.jpg",
+    "thumb": "img/brooklyn-banks-b-sm.jpg",
+    "lat": 40.710317,
+    "lon": -74.001647,
+    "time": "2025-09-21 20:32"
+   },
+   {
+    "file": "brooklyn banks.HEIC",
+    "src": "img/brooklyn-banks.jpg",
+    "thumb": "img/brooklyn-banks-sm.jpg",
+    "lat": 40.710317,
+    "lon": -74.001647,
+    "time": "2025-09-21 20:32"
+   }
+  ]
+ },
+ {
+  "id": "bump-over-fence",
+  "name": "Bump Over Fence",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump",
+   "Fence"
+  ],
+  "photos": [
+   {
+    "file": "bump over fence.HEIC",
+    "src": "img/bump-over-fence.jpg",
+    "thumb": "img/bump-over-fence-sm.jpg",
+    "lat": 40.692569,
+    "lon": -73.989228,
+    "time": "2025-05-08 16:05"
+   }
+  ]
+ },
+ {
+  "id": "bump-over-flat",
+  "name": "Bump Over Flat",
+  "area": "Alphabet City \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "bump over flat.JPEG",
+    "src": "img/bump-over-flat.jpg",
+    "thumb": "img/bump-over-flat-sm.jpg",
+    "lat": 40.726575,
+    "lon": -73.977119,
+    "time": "2025-05-11 19:54"
+   }
+  ]
+ },
+ {
+  "id": "bump-to-barrier",
+  "name": "Bump To Barrier",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Bump",
+   "Barrier"
+  ],
+  "photos": [
+   {
+    "file": "bump to barrier b.HEIC",
+    "src": "img/bump-to-barrier-b.jpg",
+    "thumb": "img/bump-to-barrier-b-sm.jpg",
+    "lat": 40.713439,
+    "lon": -74.002097,
+    "time": "2025-05-07 18:24"
+   },
+   {
+    "file": "bump to barrier.HEIC",
+    "src": "img/bump-to-barrier.jpg",
+    "thumb": "img/bump-to-barrier-sm.jpg",
+    "lat": 40.713111,
+    "lon": -74.002625,
+    "time": "2024-08-13 18:41"
+   }
+  ]
+ },
+ {
+  "id": "bump-to-rail",
+  "name": "Bump To Rail",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "bump to rail.HEIC",
+    "src": "img/bump-to-rail.jpg",
+    "thumb": "img/bump-to-rail-sm.jpg",
+    "lat": 40.708919,
+    "lon": -73.924089,
+    "time": "2023-07-25 23:56"
+   }
+  ]
+ },
+ {
+  "id": "bump-to-slant-wall",
+  "name": "Bump To Slant Wall",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "bump to slant wall.HEIC",
+    "src": "img/bump-to-slant-wall.jpg",
+    "thumb": "img/bump-to-slant-wall-sm.jpg",
+    "lat": 40.696472,
+    "lon": -73.9832,
+    "time": "2026-08-29 06:32"
+   }
+  ]
+ },
+ {
+  "id": "bump-to-trailer",
+  "name": "Bump To Trailer",
+  "area": "South Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "bump to trailer.HEIC",
+    "src": "img/bump-to-trailer.jpg",
+    "thumb": "img/bump-to-trailer-sm.jpg",
+    "lat": 40.698433,
+    "lon": -73.9616,
+    "time": "2026-08-29 12:14"
+   }
+  ]
+ },
+ {
+  "id": "bush-grates",
+  "name": "Bush Grates",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "bush grates b.HEIC",
+    "src": "img/bush-grates-b.jpg",
+    "thumb": "img/bush-grates-b-sm.jpg",
+    "lat": 40.717933,
+    "lon": -73.992067,
+    "time": "2026-09-10 18:39"
+   },
+   {
+    "file": "bush grates.HEIC",
+    "src": "img/bush-grates.jpg",
+    "thumb": "img/bush-grates-sm.jpg",
+    "lat": 40.717883,
+    "lon": -73.992294,
+    "time": "2026-09-10 18:38"
+   }
+  ]
+ },
+ {
+  "id": "circle-3-blocks",
+  "name": "Circle 3 Blocks",
+  "area": "Boerum Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Block"
+  ],
+  "photos": [
+   {
+    "file": "circle 3 blocks.HEIC",
+    "src": "img/circle-3-blocks.jpg",
+    "thumb": "img/circle-3-blocks-sm.jpg",
+    "lat": 40.683844,
+    "lon": -73.988333,
+    "time": "2026-09-13 18:15"
+   }
+  ]
+ },
+ {
+  "id": "circle-pads",
+  "name": "Circle Pads",
+  "area": "Clinton Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "circle pads b.HEIC",
+    "src": "img/circle-pads-b.jpg",
+    "thumb": "img/circle-pads-b-sm.jpg",
+    "lat": 40.689464,
+    "lon": -73.959564,
+    "time": "2025-05-17 15:42"
+   },
+   {
+    "file": "circle pads c.HEIC",
+    "src": "img/circle-pads-c.jpg",
+    "thumb": "img/circle-pads-c-sm.jpg",
+    "lat": 40.689553,
+    "lon": -73.959442,
+    "time": "2025-05-17 15:49"
+   },
+   {
+    "file": "circle pads.HEIC",
+    "src": "img/circle-pads.jpg",
+    "thumb": "img/circle-pads-sm.jpg",
+    "lat": 40.690136,
+    "lon": -73.959069,
+    "time": "2025-05-17 15:38"
+   }
+  ]
+ },
+ {
+  "id": "city-hall-rail",
+  "name": "City Hall Rail",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "city hall rail.HEIC",
+    "src": "img/city-hall-rail.jpg",
+    "thumb": "img/city-hall-rail-sm.jpg",
+    "lat": 40.71415,
+    "lon": -74.002761,
+    "time": "2023-07-25 14:35"
+   }
+  ]
+ },
+ {
+  "id": "columbus-park-double-set",
+  "name": "Columbus Park Double Set",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "columbus park double set.HEIC",
+    "src": "img/columbus-park-double-set.jpg",
+    "thumb": "img/columbus-park-double-set-sm.jpg",
+    "lat": 40.71595,
+    "lon": -74.000328,
+    "time": "2023-07-26 18:23"
+   }
+  ]
+ },
+ {
+  "id": "columbus-park-over-wall",
+  "name": "Columbus Park Over Wall",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "columbus park over wall.HEIC",
+    "src": "img/columbus-park-over-wall.jpg",
+    "thumb": "img/columbus-park-over-wall-sm.jpg",
+    "lat": 40.715936,
+    "lon": -73.999917,
+    "time": "2025-09-23 18:11"
+   }
+  ]
+ },
+ {
+  "id": "columbus-playground-red-upledge",
+  "name": "Columbus Playground Red Upledge",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "columbus playground red upledge.HEIC",
+    "src": "img/columbus-playground-red-upledge.jpg",
+    "thumb": "img/columbus-playground-red-upledge-sm.jpg",
+    "lat": 40.714608,
+    "lon": -73.999986,
+    "time": "2025-05-12 17:00"
+   }
+  ]
+ },
+ {
+  "id": "cooper-bump-to-ledge",
+  "name": "Cooper Bump To Ledge",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge",
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "cooper bump to ledge.HEIC",
+    "src": "img/cooper-bump-to-ledge.jpg",
+    "thumb": "img/cooper-bump-to-ledge-sm.jpg",
+    "lat": 40.717256,
+    "lon": -73.934769,
+    "time": "2025-10-05 18:40"
+   }
+  ]
+ },
+ {
+  "id": "courthouse-ledges",
+  "name": "Courthouse Ledges",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "courthouse ledges b.HEIC",
+    "src": "img/courthouse-ledges-b.jpg",
+    "thumb": "img/courthouse-ledges-b-sm.jpg",
+    "lat": 40.714447,
+    "lon": -74.000603,
+    "time": "2023-07-30 20:52"
+   },
+   {
+    "file": "courthouse ledges.HEIC",
+    "src": "img/courthouse-ledges.jpg",
+    "thumb": "img/courthouse-ledges-sm.jpg",
+    "lat": 40.714444,
+    "lon": -74.000603,
+    "time": "2023-07-30 20:51"
+   }
+  ]
+ },
+ {
+  "id": "crusty-over-bar",
+  "name": "Crusty Over Bar",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "crusty over bar.HEIC",
+    "src": "img/crusty-over-bar.jpg",
+    "thumb": "img/crusty-over-bar-sm.jpg",
+    "lat": 40.710486,
+    "lon": -74.003022,
+    "time": "2025-07-22 20:03"
+   }
+  ]
+ },
+ {
+  "id": "ctown-5-flat-5-double-set",
+  "name": "Ctown 5 Flat 5 Double Set",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "ctown 5 flat 5 double set.HEIC",
+    "src": "img/ctown-5-flat-5-double-set.jpg",
+    "thumb": "img/ctown-5-flat-5-double-set-sm.jpg",
+    "lat": 40.716617,
+    "lon": -73.993844,
+    "time": "2025-05-23 14:02"
+   }
+  ]
+ },
+ {
+  "id": "ctown-bump-to-bar",
+  "name": "Ctown Bump To Bar",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "ctown bump to bar.HEIC",
+    "src": "img/ctown-bump-to-bar.jpg",
+    "thumb": "img/ctown-bump-to-bar-sm.jpg",
+    "lat": 40.718011,
+    "lon": -73.993203,
+    "time": "2026-09-10 18:10"
+   }
+  ]
+ },
+ {
+  "id": "ctown-cobble-banks",
+  "name": "Ctown Cobble Banks",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "ctown cobble banks b.HEIC",
+    "src": "img/ctown-cobble-banks-b.jpg",
+    "thumb": "img/ctown-cobble-banks-b-sm.jpg",
+    "lat": 40.713589,
+    "lon": -73.998,
+    "time": "2023-07-26 17:43"
+   },
+   {
+    "file": "c town cobble banks.HEIC",
+    "src": "img/c-town-cobble-banks.jpg",
+    "thumb": "img/c-town-cobble-banks-sm.jpg",
+    "lat": 40.713508,
+    "lon": -73.998178,
+    "time": "2023-07-26 17:43"
+   }
+  ]
+ },
+ {
+  "id": "ctown-downhill-curbs",
+  "name": "Ctown Downhill Curbs",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "ctown downhill curbs.HEIC",
+    "src": "img/ctown-downhill-curbs.jpg",
+    "thumb": "img/ctown-downhill-curbs-sm.jpg",
+    "lat": 40.714375,
+    "lon": -73.99955,
+    "time": "2025-05-12 17:10"
+   }
+  ]
+ },
+ {
+  "id": "ctown-grate-to-window-sill",
+  "name": "Ctown Grate To Window Sill",
+  "area": "Nolita \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "ctown grate to window sill.HEIC",
+    "src": "img/ctown-grate-to-window-sill.jpg",
+    "thumb": "img/ctown-grate-to-window-sill-sm.jpg",
+    "lat": 40.719917,
+    "lon": -73.99315,
+    "time": "2023-07-28 12:59"
+   }
+  ]
+ },
+ {
+  "id": "ctown-over-rail",
+  "name": "Ctown Over Rail",
+  "area": "Nolita \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "ctown over rail.HEIC",
+    "src": "img/ctown-over-rail.jpg",
+    "thumb": "img/ctown-over-rail-sm.jpg",
+    "lat": 40.723342,
+    "lon": -73.990761,
+    "time": "2025-05-23 15:23"
+   }
+  ]
+ },
+ {
+  "id": "ctown-pad",
+  "name": "Ctown Pad",
+  "area": "Two Bridges \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "ctown pad b.HEIC",
+    "src": "img/ctown-pad-b.jpg",
+    "thumb": "img/ctown-pad-b-sm.jpg",
+    "lat": 40.711303,
+    "lon": -73.997078,
+    "time": "2025-04-24 18:39"
+   },
+   {
+    "file": "ctown pad.HEIC",
+    "src": "img/ctown-pad.jpg",
+    "thumb": "img/ctown-pad-sm.jpg",
+    "lat": 40.711389,
+    "lon": -73.997025,
+    "time": "2025-04-24 18:39"
+   }
+  ]
+ },
+ {
+  "id": "ctown-slappy",
+  "name": "Ctown Slappy",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "ctown slappy.HEIC",
+    "src": "img/ctown-slappy.jpg",
+    "thumb": "img/ctown-slappy-sm.jpg",
+    "lat": 40.717964,
+    "lon": -73.993125,
+    "time": "2026-09-10 18:10"
+   }
+  ]
+ },
+ {
+  "id": "ctown-up-and-flat-ledge",
+  "name": "Ctown Up And Flat Ledge",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "ctown up and flat ledge.HEIC",
+    "src": "img/ctown-up-and-flat-ledge.jpg",
+    "thumb": "img/ctown-up-and-flat-ledge-sm.jpg",
+    "lat": 40.716594,
+    "lon": -73.993844,
+    "time": "2025-05-23 14:02"
+   }
+  ]
+ },
+ {
+  "id": "ctown-wallie-grind",
+  "name": "Ctown Wallie Grind",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Wallie"
+  ],
+  "photos": [
+   {
+    "file": "ctown wallie grind.HEIC",
+    "src": "img/ctown-wallie-grind.jpg",
+    "thumb": "img/ctown-wallie-grind-sm.jpg",
+    "lat": 40.716683,
+    "lon": -73.994286,
+    "time": "2025-09-30 18:17"
+   }
+  ]
+ },
+ {
+  "id": "curb-cut",
+  "name": "Curb Cut",
+  "area": "Clinton Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "curb cut.HEIC",
+    "src": "img/curb-cut.jpg",
+    "thumb": "img/curb-cut-sm.jpg",
+    "lat": 40.689022,
+    "lon": -73.955056,
+    "time": "2026-08-23 14:23"
+   }
+  ]
+ },
+ {
+  "id": "curbcut-to-rail",
+  "name": "Curbcut To Rail",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "curbcut to rail.HEIC",
+    "src": "img/curbcut-to-rail.jpg",
+    "thumb": "img/curbcut-to-rail-sm.jpg",
+    "lat": 40.710289,
+    "lon": -74.001244,
+    "time": "2023-07-26 14:35"
+   }
+  ]
+ },
+ {
+  "id": "death-grind-ctown",
+  "name": "Death Grind Ctown",
+  "area": "Nolita \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "death grind ctown.HEIC",
+    "src": "img/death-grind-ctown.jpg",
+    "thumb": "img/death-grind-ctown-sm.jpg",
+    "lat": 40.719606,
+    "lon": -73.992172,
+    "time": "2023-07-28 13:05"
+   }
+  ]
+ },
+ {
+  "id": "death-rail",
+  "name": "Death Rail",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "death rail b.HEIC",
+    "src": "img/death-rail-b.jpg",
+    "thumb": "img/death-rail-b-sm.jpg",
+    "lat": 40.695933,
+    "lon": -73.987664,
+    "time": "2025-05-10 17:45"
+   },
+   {
+    "file": "death rail c.HEIC",
+    "src": "img/death-rail-c.jpg",
+    "thumb": "img/death-rail-c-sm.jpg",
+    "lat": 40.695931,
+    "lon": -73.987656,
+    "time": "2025-05-10 17:45"
+   },
+   {
+    "file": "death rail.HEIC",
+    "src": "img/death-rail.jpg",
+    "thumb": "img/death-rail-sm.jpg",
+    "lat": 40.695969,
+    "lon": -73.987686,
+    "time": "2025-05-10 17:44"
+   }
+  ]
+ },
+ {
+  "id": "death-trap",
+  "name": "Death Trap",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "death trap.HEIC",
+    "src": "img/death-trap.jpg",
+    "thumb": "img/death-trap-sm.jpg",
+    "lat": 40.688989,
+    "lon": -73.917206,
+    "time": "2026-07-21 16:01"
+   }
+  ]
+ },
+ {
+  "id": "dill-pad",
+  "name": "Dill Pad",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "dill pad.HEIC",
+    "src": "img/dill-pad.jpg",
+    "thumb": "img/dill-pad-sm.jpg",
+    "lat": 40.716553,
+    "lon": -74.002281,
+    "time": "2024-08-16 17:22"
+   }
+  ]
+ },
+ {
+  "id": "dime-square-wave",
+  "name": "Dimes Square Wave",
+  "area": "Two Bridges \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ramp"
+  ],
+  "photos": [
+   {
+    "file": "dime square wave.HEIC",
+    "src": "img/dime-square-wave.jpg",
+    "thumb": "img/dime-square-wave-sm.jpg",
+    "lat": 40.714833,
+    "lon": -73.991767,
+    "time": "2025-06-03 18:09"
+   }
+  ]
+ },
+ {
+  "id": "double-kink-bushwick",
+  "name": "Double Kink Bushwick",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "double kink bushwick.HEIC",
+    "src": "img/double-kink-bushwick.jpg",
+    "thumb": "img/double-kink-bushwick-sm.jpg",
+    "lat": 40.685075,
+    "lon": -73.917542,
+    "time": "2023-07-29 11:21"
+   }
+  ]
+ },
+ {
+  "id": "drop-grind",
+  "name": "Drop Grind",
+  "area": "Clinton Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "drop grind.HEIC",
+    "src": "img/drop-grind.jpg",
+    "thumb": "img/drop-grind-sm.jpg",
+    "lat": 40.689931,
+    "lon": -73.967339,
+    "time": "2026-10-04 18:57"
+   }
+  ]
+ },
+ {
+  "id": "drop-in-gap",
+  "name": "Drop In Gap",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "drop in gap.HEIC",
+    "src": "img/drop-in-gap.jpg",
+    "thumb": "img/drop-in-gap-sm.jpg",
+    "lat": 40.691781,
+    "lon": -73.927422,
+    "time": "2023-08-06 13:09"
+   }
+  ]
+ },
+ {
+  "id": "dumbo-brick-banks",
+  "name": "DUMBO Brick Banks",
+  "area": "DUMBO \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "dumbo brick banks b.HEIC",
+    "src": "img/dumbo-brick-banks-b.jpg",
+    "thumb": "img/dumbo-brick-banks-b-sm.jpg",
+    "lat": 40.699506,
+    "lon": -73.986947,
+    "time": "2025-04-19 18:13"
+   },
+   {
+    "file": "dumbo brick banks.HEIC",
+    "src": "img/dumbo-brick-banks.jpg",
+    "thumb": "img/dumbo-brick-banks-sm.jpg",
+    "lat": 40.699136,
+    "lon": -73.986861,
+    "time": "2025-03-25 10:37"
+   }
+  ]
+ },
+ {
+  "id": "dumbo-bump-to-ledge",
+  "name": "DUMBO Bump To Ledge",
+  "area": "DUMBO \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge",
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "dumbo bump to ledge.JPEG",
+    "src": "img/dumbo-bump-to-ledge.jpg",
+    "thumb": "img/dumbo-bump-to-ledge-sm.jpg",
+    "lat": 40.702881,
+    "lon": -73.987642,
+    "time": "2025-08-23 16:44"
+   }
+  ]
+ },
+ {
+  "id": "dumbo-double-set",
+  "name": "DUMBO Double Set",
+  "area": "DUMBO \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "dumbo double set b.HEIC",
+    "src": "img/dumbo-double-set-b.jpg",
+    "thumb": "img/dumbo-double-set-b-sm.jpg",
+    "lat": 40.701575,
+    "lon": -73.986442,
+    "time": "2025-04-19 18:50"
+   },
+   {
+    "file": "dumbo double set.HEIC",
+    "src": "img/dumbo-double-set.jpg",
+    "thumb": "img/dumbo-double-set-sm.jpg",
+    "lat": 40.701575,
+    "lon": -73.986428,
+    "time": "2025-04-19 18:50"
+   }
+  ]
+ },
+ {
+  "id": "east-village-inside-ledge",
+  "name": "East Village Inside Ledge",
+  "area": "East Village \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "east village inside ledge.HEIC",
+    "src": "img/east-village-inside-ledge.jpg",
+    "thumb": "img/east-village-inside-ledge-sm.jpg",
+    "lat": 40.728328,
+    "lon": -73.991189,
+    "time": "2025-04-01 19:52"
+   }
+  ]
+ },
+ {
+  "id": "east-village-stair-grind",
+  "name": "East Village Stair Grind",
+  "area": "East Village \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "east village stair grind.HEIC",
+    "src": "img/east-village-stair-grind.jpg",
+    "thumb": "img/east-village-stair-grind-sm.jpg",
+    "lat": 40.730142,
+    "lon": -73.990722,
+    "time": "2025-04-02 18:19"
+   }
+  ]
+ },
+ {
+  "id": "fishgap",
+  "name": "Fishgap",
+  "area": "Navy Yard \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "fishgap b.HEIC",
+    "src": "img/fishgap-b.jpg",
+    "thumb": "img/fishgap-b-sm.jpg",
+    "lat": 40.696911,
+    "lon": -73.967667,
+    "time": "2026-09-06 15:18"
+   },
+   {
+    "file": "fishgap c.HEIC",
+    "src": "img/fishgap-c.jpg",
+    "thumb": "img/fishgap-c-sm.jpg",
+    "lat": 40.697281,
+    "lon": -73.967606,
+    "time": "2026-09-06 15:18"
+   },
+   {
+    "file": "fishgap d.HEIC",
+    "src": "img/fishgap-d.jpg",
+    "thumb": "img/fishgap-d-sm.jpg",
+    "lat": 40.697575,
+    "lon": -73.967689,
+    "time": "2026-09-06 15:18"
+   },
+   {
+    "file": "fishgap.HEIC",
+    "src": "img/fishgap.jpg",
+    "thumb": "img/fishgap-sm.jpg",
+    "lat": 40.696603,
+    "lon": -73.967622,
+    "time": "2026-09-06 15:17"
+   }
+  ]
+ },
+ {
+  "id": "fort-green-cobble-banks",
+  "name": "Fort Greene Cobble Banks",
+  "area": "Fort Greene \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "fort green cobble banks.HEIC",
+    "src": "img/fort-green-cobble-banks.jpg",
+    "thumb": "img/fort-green-cobble-banks-sm.jpg",
+    "lat": 40.692708,
+    "lon": -73.977408,
+    "time": "2025-09-01 12:00"
+   }
+  ]
+ },
+ {
+  "id": "fort-green-pad",
+  "name": "Fort Greene Pad",
+  "area": "Fort Greene \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "fort green pad.HEIC",
+    "src": "img/fort-green-pad.jpg",
+    "thumb": "img/fort-green-pad-sm.jpg",
+    "lat": 40.6932,
+    "lon": -73.97705,
+    "time": "2025-09-01 12:05"
+   }
+  ]
+ },
+ {
+  "id": "fort-green-philly-step",
+  "name": "Fort Greene Philly Step",
+  "area": "Clinton Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Philly Step"
+  ],
+  "photos": [
+   {
+    "file": "fort green philly step.HEIC",
+    "src": "img/fort-green-philly-step.jpg",
+    "thumb": "img/fort-green-philly-step-sm.jpg",
+    "lat": 40.691253,
+    "lon": -73.967483,
+    "time": "2026-10-04 17:50"
+   }
+  ]
+ },
+ {
+  "id": "fort-green",
+  "name": "Fort Greene",
+  "area": "Brooklyn Heights \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "fort green.HEIC",
+    "src": "img/fort-green.jpg",
+    "thumb": "img/fort-green-sm.jpg",
+    "lat": 40.698803,
+    "lon": -73.991675,
+    "time": "2023-08-06 15:44"
+   }
+  ]
+ },
+ {
+  "id": "freeway-outrail",
+  "name": "Freeway Outrail",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "freeway outrail b.HEIC",
+    "src": "img/freeway-outrail-b.jpg",
+    "thumb": "img/freeway-outrail-b-sm.jpg",
+    "lat": 40.723147,
+    "lon": -73.939644,
+    "time": "2026-08-15 17:49"
+   },
+   {
+    "file": "freeway outrail.HEIC",
+    "src": "img/freeway-outrail.jpg",
+    "thumb": "img/freeway-outrail-sm.jpg",
+    "lat": 40.723106,
+    "lon": -73.93975,
+    "time": "2026-08-15 17:49"
+   }
+  ]
+ },
+ {
+  "id": "freeway-up-barrier",
+  "name": "Freeway Up Barrier",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Barrier"
+  ],
+  "photos": [
+   {
+    "file": "freeway up barrier.HEIC",
+    "src": "img/freeway-up-barrier.jpg",
+    "thumb": "img/freeway-up-barrier-sm.jpg",
+    "lat": 40.72405,
+    "lon": -73.937867,
+    "time": "2023-07-25 23:14"
+   }
+  ]
+ },
+ {
+  "id": "gap-to-stair-grind-fort-green",
+  "name": "Gap To Stair Grind Fort Greene",
+  "area": "DUMBO \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "gap to stair grind fort green.HEIC",
+    "src": "img/gap-to-stair-grind-fort-green.jpg",
+    "thumb": "img/gap-to-stair-grind-fort-green-sm.jpg",
+    "lat": 40.699525,
+    "lon": -73.990592,
+    "time": "2025-04-19 19:30"
+   }
+  ]
+ },
+ {
+  "id": "gap-to-tall-ledge",
+  "name": "Gap To Tall Ledge",
+  "area": "Boerum Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge",
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "gap to tall ledge.HEIC",
+    "src": "img/gap-to-tall-ledge.jpg",
+    "thumb": "img/gap-to-tall-ledge-sm.jpg",
+    "lat": 40.689042,
+    "lon": -73.986153,
+    "time": "2025-10-07 14:02"
+   }
+  ]
+ },
+ {
+  "id": "grate-bench",
+  "name": "Grate + Bench",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "grate + bench.HEIC",
+    "src": "img/grate-bench.jpg",
+    "thumb": "img/grate-bench-sm.jpg",
+    "lat": 40.686967,
+    "lon": -73.923753,
+    "time": "2023-07-25 17:31"
+   }
+  ]
+ },
+ {
+  "id": "grate-gap",
+  "name": "Grate Gap",
+  "area": "Ridgewood \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "grate gap.HEIC",
+    "src": "img/grate-gap.jpg",
+    "thumb": "img/grate-gap-sm.jpg",
+    "lat": 40.698867,
+    "lon": -73.902236,
+    "time": "2026-08-06 14:50"
+   }
+  ]
+ },
+ {
+  "id": "grate-to-stair",
+  "name": "Grate To Stair",
+  "area": "Ridgewood \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Stairs",
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "grate to stair.HEIC",
+    "src": "img/grate-to-stair.jpg",
+    "thumb": "img/grate-to-stair-sm.jpg",
+    "lat": 40.700175,
+    "lon": -73.902864,
+    "time": "2025-05-01 15:18"
+   }
+  ]
+ },
+ {
+  "id": "grate-wallie",
+  "name": "Grate Wallie",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Grate",
+   "Wallie"
+  ],
+  "photos": [
+   {
+    "file": "grate wallie.HEIC",
+    "src": "img/grate-wallie.jpg",
+    "thumb": "img/grate-wallie-sm.jpg",
+    "lat": 40.706422,
+    "lon": -73.931586,
+    "time": "2025-03-12 20:07"
+   }
+  ]
+ },
+ {
+  "id": "grind-to-splat",
+  "name": "Grind To Splat",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "grind to splat b.HEIC",
+    "src": "img/grind-to-splat-b.jpg",
+    "thumb": "img/grind-to-splat-b-sm.jpg",
+    "lat": 40.710822,
+    "lon": -74.000686,
+    "time": "2023-07-25 13:55"
+   },
+   {
+    "file": "grind to splat.HEIC",
+    "src": "img/grind-to-splat.jpg",
+    "thumb": "img/grind-to-splat-sm.jpg",
+    "lat": 40.711025,
+    "lon": -74.000572,
+    "time": "2023-07-25 13:52"
+   }
+  ]
+ },
+ {
+  "id": "hospital-banks",
+  "name": "Hospital Banks",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "hospital banks.HEIC",
+    "src": "img/hospital-banks.jpg",
+    "thumb": "img/hospital-banks-sm.jpg",
+    "lat": 40.700589,
+    "lon": -73.942139,
+    "time": "2023-07-29 20:39"
+   }
+  ]
+ },
+ {
+  "id": "ledge-into-bank",
+  "name": "Ledge Into Bank",
+  "area": "Battery Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "ledge into bank b.HEIC",
+    "src": "img/ledge-into-bank-b.jpg",
+    "thumb": "img/ledge-into-bank-b-sm.jpg",
+    "lat": 40.702781,
+    "lon": -74.014442,
+    "time": "2023-08-04 17:54"
+   },
+   {
+    "file": "ledge into bank.HEIC",
+    "src": "img/ledge-into-bank.jpg",
+    "thumb": "img/ledge-into-bank-sm.jpg",
+    "lat": 40.702594,
+    "lon": -74.01445,
+    "time": "2023-08-04 17:53"
+   }
+  ]
+ },
+ {
+  "id": "les-hubba",
+  "name": "LES Hubba",
+  "area": "Two Bridges \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Hubba"
+  ],
+  "photos": [
+   {
+    "file": "les hubba.HEIC",
+    "src": "img/les-hubba.jpg",
+    "thumb": "img/les-hubba-sm.jpg",
+    "lat": 40.711475,
+    "lon": -73.993697,
+    "time": "2026-07-15 10:19"
+   }
+  ]
+ },
+ {
+  "id": "loading-dock-gap-to-grind",
+  "name": "Loading Dock Gap To Grind",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "loading dock gap to grind.HEIC",
+    "src": "img/loading-dock-gap-to-grind.jpg",
+    "thumb": "img/loading-dock-gap-to-grind-sm.jpg",
+    "lat": 40.710608,
+    "lon": -73.934167,
+    "time": "2023-07-26 00:50"
+   },
+   {
+    "file": "gap to grind loading dock b.HEIC",
+    "src": "img/gap-to-grind-loading-dock-b.jpg",
+    "thumb": "img/gap-to-grind-loading-dock-b-sm.jpg",
+    "lat": 40.710625,
+    "lon": -73.934106,
+    "time": "2023-07-26 00:50"
+   }
+  ]
+ },
+ {
+  "id": "long-black-ledges",
+  "name": "Long Black Ledges",
+  "area": "Financial District \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "long black ledges.HEIC",
+    "src": "img/long-black-ledges.jpg",
+    "thumb": "img/long-black-ledges-sm.jpg",
+    "lat": 40.708339,
+    "lon": -74.010069,
+    "time": "2025-03-21 17:01"
+   }
+  ]
+ },
+ {
+  "id": "long-step-grind",
+  "name": "Long Step Grind",
+  "area": "Two Bridges \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "long step grind.HEIC",
+    "src": "img/long-step-grind.jpg",
+    "thumb": "img/long-step-grind-sm.jpg",
+    "lat": 40.713608,
+    "lon": -73.990058,
+    "time": "2025-09-24 19:53"
+   }
+  ]
+ },
+ {
+  "id": "lower-barricade",
+  "name": "Lower Barricade",
+  "area": "Financial District \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Barrier"
+  ],
+  "photos": [
+   {
+    "file": "lower barricade.HEIC",
+    "src": "img/lower-barricade.jpg",
+    "thumb": "img/lower-barricade-sm.jpg",
+    "lat": 40.706264,
+    "lon": -74.01085,
+    "time": "2023-07-25 12:44"
+   }
+  ]
+ },
+ {
+  "id": "lower-c-pads",
+  "name": "Lower C Pads",
+  "area": "Seaport \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "lower c pads.HEIC",
+    "src": "img/lower-c-pads.jpg",
+    "thumb": "img/lower-c-pads-sm.jpg",
+    "lat": 40.705375,
+    "lon": -74.005356,
+    "time": "2025-03-21 16:41"
+   }
+  ]
+ },
+ {
+  "id": "lower-drop-gap",
+  "name": "Lower Drop Gap",
+  "area": "Financial District \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "lower drop gap.HEIC",
+    "src": "img/lower-drop-gap.jpg",
+    "thumb": "img/lower-drop-gap-sm.jpg",
+    "lat": 40.705414,
+    "lon": -74.008356,
+    "time": "2025-05-12 16:25"
+   }
+  ]
+ },
+ {
+  "id": "lower-gap-to-grind",
+  "name": "Lower Gap To Grind",
+  "area": "Two Bridges \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "lower gap to grind b.HEIC",
+    "src": "img/lower-gap-to-grind-b.jpg",
+    "thumb": "img/lower-gap-to-grind-b-sm.jpg",
+    "lat": 40.710156,
+    "lon": -73.991669,
+    "time": "2023-07-22 16:57"
+   },
+   {
+    "file": "lower gap to grind.HEIC",
+    "src": "img/lower-gap-to-grind.jpg",
+    "thumb": "img/lower-gap-to-grind-sm.jpg",
+    "lat": 40.710472,
+    "lon": -73.991364,
+    "time": "2023-08-04 17:36"
+   }
+  ]
+ },
+ {
+  "id": "lower-granite-ledge-line",
+  "name": "Lower Granite Ledge Line",
+  "area": "Seaport \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "lower granite ledge line.HEIC",
+    "src": "img/lower-granite-ledge-line.jpg",
+    "thumb": "img/lower-granite-ledge-line-sm.jpg",
+    "lat": 40.705456,
+    "lon": -74.006333,
+    "time": "2025-03-21 16:42"
+   }
+  ]
+ },
+ {
+  "id": "lower-playground",
+  "name": "Lower Playground",
+  "area": "Two Bridges \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "lower playground.HEIC",
+    "src": "img/lower-playground.jpg",
+    "thumb": "img/lower-playground-sm.jpg",
+    "lat": 40.709944,
+    "lon": -73.996781,
+    "time": "2025-04-25 19:20"
+   },
+   {
+    "file": "lowerplayground b.HEIC",
+    "src": "img/lowerplayground-b.jpg",
+    "thumb": "img/lowerplayground-b-sm.jpg",
+    "lat": 40.709944,
+    "lon": -73.996881,
+    "time": "2025-04-25 19:20"
+   }
+  ]
+ },
+ {
+  "id": "lower-rock-banks",
+  "name": "Lower Rock Banks",
+  "area": "Seaport \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "lower rock banks b.HEIC",
+    "src": "img/lower-rock-banks-b.jpg",
+    "thumb": "img/lower-rock-banks-b-sm.jpg",
+    "lat": 40.707825,
+    "lon": -74.004181,
+    "time": "2025-09-09 18:20"
+   },
+   {
+    "file": "lower rock banks c.HEIC",
+    "src": "img/lower-rock-banks-c.jpg",
+    "thumb": "img/lower-rock-banks-c-sm.jpg",
+    "lat": 40.707731,
+    "lon": -74.003953,
+    "time": "2025-09-09 18:22"
+   },
+   {
+    "file": "lower rock banks d.HEIC",
+    "src": "img/lower-rock-banks-d.jpg",
+    "thumb": "img/lower-rock-banks-d-sm.jpg",
+    "lat": 40.707761,
+    "lon": -74.003906,
+    "time": "2025-09-09 18:22"
+   },
+   {
+    "file": "lower rock banks.HEIC",
+    "src": "img/lower-rock-banks.jpg",
+    "thumb": "img/lower-rock-banks-sm.jpg",
+    "lat": 40.707794,
+    "lon": -74.004128,
+    "time": "2025-09-09 18:20"
+   }
+  ]
+ },
+ {
+  "id": "lower-steps-to-grate",
+  "name": "Lower Steps To Grate",
+  "area": "Battery Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs",
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "lower steps to grate.HEIC",
+    "src": "img/lower-steps-to-grate.jpg",
+    "thumb": "img/lower-steps-to-grate-sm.jpg",
+    "lat": 40.702622,
+    "lon": -74.010436,
+    "time": "2023-08-05 18:21"
+   },
+   {
+    "file": "lower step to grate b.HEIC",
+    "src": "img/lower-step-to-grate-b.jpg",
+    "thumb": "img/lower-step-to-grate-b-sm.jpg",
+    "lat": 40.702606,
+    "lon": -74.010544,
+    "time": "2023-08-05 18:21"
+   }
+  ]
+ },
+ {
+  "id": "man-bridge-15-stair",
+  "name": "Man Bridge 15 Stair",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "man bridge 15 stair.HEIC",
+    "src": "img/man-bridge-15-stair.jpg",
+    "thumb": "img/man-bridge-15-stair-sm.jpg",
+    "lat": 40.715533,
+    "lon": -73.994325,
+    "time": "2023-07-26 17:49"
+   }
+  ]
+ },
+ {
+  "id": "man-bridge-flat-gap",
+  "name": "Man Bridge Flat Gap",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "man bridge flat gap.HEIC",
+    "src": "img/man-bridge-flat-gap.jpg",
+    "thumb": "img/man-bridge-flat-gap-sm.jpg",
+    "lat": 40.715569,
+    "lon": -73.996369,
+    "time": "2025-05-07 20:38"
+   }
+  ]
+ },
+ {
+  "id": "man-bridge-pad-to-grind",
+  "name": "Man Bridge Pad To Grind",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "man bridge pad to grind.HEIC",
+    "src": "img/man-bridge-pad-to-grind.jpg",
+    "thumb": "img/man-bridge-pad-to-grind-sm.jpg",
+    "lat": 40.715739,
+    "lon": -73.995094,
+    "time": "2025-10-07 17:58"
+   }
+  ]
+ },
+ {
+  "id": "maria-hernandez-pole-drop",
+  "name": "Maria Hernandez Pole Drop",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "maria hernandez pole drop.HEIC",
+    "src": "img/maria-hernandez-pole-drop.jpg",
+    "thumb": "img/maria-hernandez-pole-drop-sm.jpg",
+    "lat": 40.704028,
+    "lon": -73.923325,
+    "time": "2025-04-08 07:25"
+   }
+  ]
+ },
+ {
+  "id": "mccarren-pool-square-rail",
+  "name": "McCarren Pool Square Rail",
+  "area": "Greenpoint \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "mccarren pool square rail b.HEIC",
+    "src": "img/mccarren-pool-square-rail-b.jpg",
+    "thumb": "img/mccarren-pool-square-rail-b-sm.jpg",
+    "lat": 40.720775,
+    "lon": -73.950181,
+    "time": "2026-09-04 15:50"
+   },
+   {
+    "file": "mcarren pool square rail.HEIC",
+    "src": "img/mcarren-pool-square-rail.jpg",
+    "thumb": "img/mcarren-pool-square-rail-sm.jpg",
+    "lat": 40.720678,
+    "lon": -73.950325,
+    "time": "2026-09-04 15:50"
+   }
+  ]
+ },
+ {
+  "id": "median-curb",
+  "name": "Median Curb",
+  "area": "Clinton Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "median curb b.HEIC",
+    "src": "img/median-curb-b.jpg",
+    "thumb": "img/median-curb-b-sm.jpg",
+    "lat": 40.689306,
+    "lon": -73.957108,
+    "time": "2025-05-17 17:44"
+   },
+   {
+    "file": "median curb.HEIC",
+    "src": "img/median-curb.jpg",
+    "thumb": "img/median-curb-sm.jpg",
+    "lat": 40.689281,
+    "lon": -73.957206,
+    "time": "2025-05-17 17:43"
+   }
+  ]
+ },
+ {
+  "id": "navy-yard-blue-steps-outrail",
+  "name": "Navy Yard Blue Steps Outrail",
+  "area": "Navy Yard \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "navy yard blue steps outrail b.HEIC",
+    "src": "img/navy-yard-blue-steps-outrail-b.jpg",
+    "thumb": "img/navy-yard-blue-steps-outrail-b-sm.jpg",
+    "lat": 40.696075,
+    "lon": -73.968742,
+    "time": "2026-09-06 15:14"
+   },
+   {
+    "file": "navy yard blue steps outrail.HEIC",
+    "src": "img/navy-yard-blue-steps-outrail.jpg",
+    "thumb": "img/navy-yard-blue-steps-outrail-sm.jpg",
+    "lat": 40.6959,
+    "lon": -73.968872,
+    "time": "2026-09-06 15:14"
+   }
+  ]
+ },
+ {
+  "id": "nypd-hq",
+  "name": "NYPD HQ",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "nypd hq b.HEIC",
+    "src": "img/nypd-hq-b.jpg",
+    "thumb": "img/nypd-hq-b-sm.jpg",
+    "lat": 40.712167,
+    "lon": -74.002975,
+    "time": "2023-07-25 14:17"
+   },
+   {
+    "file": "nypd hq c.HEIC",
+    "src": "img/nypd-hq-c.jpg",
+    "thumb": "img/nypd-hq-c-sm.jpg",
+    "lat": 40.712761,
+    "lon": -74.002936,
+    "time": "2023-07-25 14:17"
+   },
+   {
+    "file": "nypd hq d.HEIC",
+    "src": "img/nypd-hq-d.jpg",
+    "thumb": "img/nypd-hq-d-sm.jpg",
+    "lat": 40.712558,
+    "lon": -74.002761,
+    "time": "2023-07-25 14:20"
+   },
+   {
+    "file": "nypd hq.HEIC",
+    "src": "img/nypd-hq.jpg",
+    "thumb": "img/nypd-hq-sm.jpg",
+    "lat": 40.712192,
+    "lon": -74.003044,
+    "time": "2023-07-25 14:11"
+   }
+  ]
+ },
+ {
+  "id": "nypd-pad",
+  "name": "NYPD Pad",
+  "area": "Civic Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "nypd pad b.HEIC",
+    "src": "img/nypd-pad-b.jpg",
+    "thumb": "img/nypd-pad-b-sm.jpg",
+    "lat": 40.713444,
+    "lon": -74.001664,
+    "time": "2025-05-12 17:46"
+   },
+   {
+    "file": "nypd pad.HEIC",
+    "src": "img/nypd-pad.jpg",
+    "thumb": "img/nypd-pad-sm.jpg",
+    "lat": 40.713633,
+    "lon": -74.001428,
+    "time": "2025-05-12 17:46"
+   }
+  ]
+ },
+ {
+  "id": "nyu-rail",
+  "name": "NYU Rail",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "nyu rail.HEIC",
+    "src": "img/nyu-rail.jpg",
+    "thumb": "img/nyu-rail-sm.jpg",
+    "lat": 40.694064,
+    "lon": -73.9852,
+    "time": "2024-08-17 18:33"
+   }
+  ]
+ },
+ {
+  "id": "philly-step-to-step",
+  "name": "Philly Step To Step",
+  "area": "Chinatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Philly Step"
+  ],
+  "photos": [
+   {
+    "file": "philly step to step.HEIC",
+    "src": "img/philly-step-to-step.jpg",
+    "thumb": "img/philly-step-to-step-sm.jpg",
+    "lat": 40.713417,
+    "lon": -73.997375,
+    "time": "2025-07-22 20:48"
+   }
+  ]
+ },
+ {
+  "id": "philly-step",
+  "name": "Philly Step",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Philly Step"
+  ],
+  "photos": [
+   {
+    "file": "philly step.HEIC",
+    "src": "img/philly-step.jpg",
+    "thumb": "img/philly-step-sm.jpg",
+    "lat": 40.697528,
+    "lon": -73.931061,
+    "time": "2026-07-17 20:00"
+   }
+  ]
+ },
+ {
+  "id": "popeyes-bump-to-rail",
+  "name": "Popeyes Bump To Rail",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "popeyes bump to rail.HEIC",
+    "src": "img/popeyes-bump-to-rail.jpg",
+    "thumb": "img/popeyes-bump-to-rail-sm.jpg",
+    "lat": 40.699028,
+    "lon": -73.917161,
+    "time": "2023-07-30 02:21"
+   }
+  ]
+ },
+ {
+  "id": "red-bump-to-bar",
+  "name": "Red Bump To Bar",
+  "area": "Clinton Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "red bump to bar.HEIC",
+    "src": "img/red-bump-to-bar.jpg",
+    "thumb": "img/red-bump-to-bar-sm.jpg",
+    "lat": 40.693225,
+    "lon": -73.954047,
+    "time": "2025-09-28 13:24"
+   },
+   {
+    "file": "red bum tp bar b.HEIC",
+    "src": "img/red-bum-tp-bar-b.jpg",
+    "thumb": "img/red-bum-tp-bar-b-sm.jpg",
+    "lat": 40.693222,
+    "lon": -73.954072,
+    "time": "2025-09-28 13:25"
+   }
+  ]
+ },
+ {
+  "id": "redhook-ramp-pad",
+  "name": "Red Hook Ramp Pad",
+  "area": "Columbia Waterfront \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Pad",
+   "Ramp"
+  ],
+  "photos": [
+   {
+    "file": "redhook ramp pad.HEIC",
+    "src": "img/redhook-ramp-pad.jpg",
+    "thumb": "img/redhook-ramp-pad-sm.jpg",
+    "lat": 40.685528,
+    "lon": -74.004364,
+    "time": "2026-09-18 19:42"
+   }
+  ]
+ },
+ {
+  "id": "seaport-c-ledges",
+  "name": "Seaport C Ledges",
+  "area": "Financial District \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "seaport c ledges b.HEIC",
+    "src": "img/seaport-c-ledges-b.jpg",
+    "thumb": "img/seaport-c-ledges-b-sm.jpg",
+    "lat": 40.704414,
+    "lon": -74.006669,
+    "time": "2023-07-22 17:09"
+   },
+   {
+    "file": "seaport c ledges c.HEIC",
+    "src": "img/seaport-c-ledges-c.jpg",
+    "thumb": "img/seaport-c-ledges-c-sm.jpg",
+    "lat": 40.704472,
+    "lon": -74.0066,
+    "time": "2023-07-22 17:10"
+   },
+   {
+    "file": "seaport c ledges d.HEIC",
+    "src": "img/seaport-c-ledges-d.jpg",
+    "thumb": "img/seaport-c-ledges-d-sm.jpg",
+    "lat": 40.705156,
+    "lon": -74.007256,
+    "time": "2023-07-25 12:48"
+   },
+   {
+    "file": "seaport c ledges.HEIC",
+    "src": "img/seaport-c-ledges.jpg",
+    "thumb": "img/seaport-c-ledges-sm.jpg",
+    "lat": 40.704436,
+    "lon": -74.006789,
+    "time": "2023-07-22 17:09"
+   }
+  ]
+ },
+ {
+  "id": "seaport-ledges",
+  "name": "Seaport Ledges",
+  "area": "Seaport \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "seaport ledges b.HEIC",
+    "src": "img/seaport-ledges-b.jpg",
+    "thumb": "img/seaport-ledges-b-sm.jpg",
+    "lat": 40.704758,
+    "lon": -74.005561,
+    "time": "2023-07-22 17:08"
+   },
+   {
+    "file": "seaport ledges.HEIC",
+    "src": "img/seaport-ledges.jpg",
+    "thumb": "img/seaport-ledges-sm.jpg",
+    "lat": 40.705161,
+    "lon": -74.004433,
+    "time": "2023-07-22 17:07"
+   }
+  ]
+ },
+ {
+  "id": "seaport-over-post",
+  "name": "Seaport Over Post",
+  "area": "Seaport \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "seaport over post.HEIC",
+    "src": "img/seaport-over-post.jpg",
+    "thumb": "img/seaport-over-post-sm.jpg",
+    "lat": 40.707469,
+    "lon": -74.001122,
+    "time": "2023-07-30 14:57"
+   }
+  ]
+ },
+ {
+  "id": "seaport-wallrail",
+  "name": "Seaport Wallrail",
+  "area": "Two Bridges \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "seaport wallrail b.HEIC",
+    "src": "img/seaport-wallrail-b.jpg",
+    "thumb": "img/seaport-wallrail-b-sm.jpg",
+    "lat": 40.709192,
+    "lon": -73.988319,
+    "time": "2022-11-05 20:23"
+   },
+   {
+    "file": "seaport wallrail.HEIC",
+    "src": "img/seaport-wallrail.jpg",
+    "thumb": "img/seaport-wallrail-sm.jpg",
+    "lat": 40.709194,
+    "lon": -73.98835,
+    "time": "2022-11-05 20:23"
+   }
+  ]
+ },
+ {
+  "id": "sela-v-rail",
+  "name": "Sela V Rail",
+  "area": "Navy Yard \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "sela v rail.HEIC",
+    "src": "img/sela-v-rail.jpg",
+    "thumb": "img/sela-v-rail-sm.jpg",
+    "lat": 40.69725,
+    "lon": -73.965661,
+    "time": "2026-09-06 16:24"
+   }
+  ]
+ },
+ {
+  "id": "selav-drop-over-gap",
+  "name": "Sela V Drop Over Gap",
+  "area": "Navy Yard \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "selav drop over gap b.HEIC",
+    "src": "img/selav-drop-over-gap-b.jpg",
+    "thumb": "img/selav-drop-over-gap-b-sm.jpg",
+    "lat": 40.697067,
+    "lon": -73.965042,
+    "time": "2026-10-26 20:09"
+   },
+   {
+    "file": "selav drop over gap.HEIC",
+    "src": "img/selav-drop-over-gap.jpg",
+    "thumb": "img/selav-drop-over-gap-sm.jpg",
+    "lat": 40.697422,
+    "lon": -73.965531,
+    "time": "2026-10-26 20:09"
+   }
+  ]
+ },
+ {
+  "id": "shotgun-subway-rail",
+  "name": "Shotgun Subway Rail",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "shotgun subway rail b.HEIC",
+    "src": "img/shotgun-subway-rail-b.jpg",
+    "thumb": "img/shotgun-subway-rail-b-sm.jpg",
+    "lat": 40.69275,
+    "lon": -73.987656,
+    "time": "2025-05-08 16:40"
+   },
+   {
+    "file": "shotgun subway rail.HEIC",
+    "src": "img/shotgun-subway-rail.jpg",
+    "thumb": "img/shotgun-subway-rail-sm.jpg",
+    "lat": 40.692619,
+    "lon": -73.987419,
+    "time": "2025-05-08 16:40"
+   }
+  ]
+ },
+ {
+  "id": "sidewalk-bump-to-barrier",
+  "name": "Sidewalk Bump To Barrier",
+  "area": "South Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump",
+   "Barrier"
+  ],
+  "photos": [
+   {
+    "file": "sidewalk bump to barrier.HEIC",
+    "src": "img/sidewalk-bump-to-barrier.jpg",
+    "thumb": "img/sidewalk-bump-to-barrier-sm.jpg",
+    "lat": 40.703933,
+    "lon": -73.951325,
+    "time": "2023-07-22 14:51"
+   }
+  ]
+ },
+ {
+  "id": "slanted-flat-gap",
+  "name": "Slanted Flat Gap",
+  "area": "Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "slanted flat gap.HEIC",
+    "src": "img/slanted-flat-gap.jpg",
+    "thumb": "img/slanted-flat-gap-sm.jpg",
+    "lat": 40.708633,
+    "lon": -73.953003,
+    "time": "2025-04-17 15:00"
+   }
+  ]
+ },
+ {
+  "id": "soho-flat-gap",
+  "name": "Soho Flat Gap",
+  "area": "NoHo \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "soho flat gap b.HEIC",
+    "src": "img/soho-flat-gap-b.jpg",
+    "thumb": "img/soho-flat-gap-b-sm.jpg",
+    "lat": 40.726847,
+    "lon": -73.994789,
+    "time": "2025-04-05 16:40"
+   },
+   {
+    "file": "soho flat gap.HEIC",
+    "src": "img/soho-flat-gap.jpg",
+    "thumb": "img/soho-flat-gap-sm.jpg",
+    "lat": 40.726908,
+    "lon": -73.994697,
+    "time": "2025-04-05 16:40"
+   }
+  ]
+ },
+ {
+  "id": "soho-gap-to-curb",
+  "name": "Soho Gap To Curb",
+  "area": "SoHo \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "soho gap to curb.HEIC",
+    "src": "img/soho-gap-to-curb.jpg",
+    "thumb": "img/soho-gap-to-curb-sm.jpg",
+    "lat": 40.719867,
+    "lon": -74.000953,
+    "time": "2025-05-07 16:56"
+   }
+  ]
+ },
+ {
+  "id": "sombrero",
+  "name": "Sombrero",
+  "area": "Maspeth \u00b7 Queens",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "sombrero.HEIC",
+    "src": "img/sombrero.jpg",
+    "thumb": "img/sombrero-sm.jpg",
+    "lat": 40.725661,
+    "lon": -73.904153,
+    "time": "2025-04-27 20:50"
+   }
+  ]
+ },
+ {
+  "id": "stair-ledge",
+  "name": "Stair Ledge",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge",
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "stair ledge.HEIC",
+    "src": "img/stair-ledge.jpg",
+    "thumb": "img/stair-ledge-sm.jpg",
+    "lat": 40.704456,
+    "lon": -73.942803,
+    "time": "2026-10-31 01:53"
+   }
+  ]
+ },
+ {
+  "id": "stair-rail-line",
+  "name": "Stair/Rail Line",
+  "area": "South Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "stair:rail line.HEIC",
+    "src": "img/stair-rail-line.jpg",
+    "thumb": "img/stair-rail-line-sm.jpg",
+    "lat": 40.706203,
+    "lon": -73.96685,
+    "time": "2026-09-19 16:18"
+   }
+  ]
+ },
+ {
+  "id": "subway-rail",
+  "name": "Subway Rail",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "subway rail.HEIC",
+    "src": "img/subway-rail.jpg",
+    "thumb": "img/subway-rail-sm.jpg",
+    "lat": 40.690517,
+    "lon": -73.985092,
+    "time": "2022-11-06 00:11"
+   }
+  ]
+ },
+ {
+  "id": "sucio-slants",
+  "name": "Sucio Slants",
+  "area": "East Village \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "sucio slants.HEIC",
+    "src": "img/sucio-slants.jpg",
+    "thumb": "img/sucio-slants-sm.jpg",
+    "lat": 40.728661,
+    "lon": -73.990433,
+    "time": "2025-04-02 18:17"
+   }
+  ]
+ },
+ {
+  "id": "tall-rail",
+  "name": "Tall Rail",
+  "area": "Nolita \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "tall rail.HEIC",
+    "src": "img/tall-rail.jpg",
+    "thumb": "img/tall-rail-sm.jpg",
+    "lat": 40.722003,
+    "lon": -73.98925,
+    "time": "2025-06-03 19:15"
+   }
+  ]
+ },
+ {
+  "id": "thread-ledge",
+  "name": "Thread Ledge",
+  "area": "South Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "thread ledge.HEIC",
+    "src": "img/thread-ledge.jpg",
+    "thumb": "img/thread-ledge-sm.jpg",
+    "lat": 40.707436,
+    "lon": -73.951858,
+    "time": "2023-07-22 13:38"
+   }
+  ]
+ },
+ {
+  "id": "tillary-cledge",
+  "name": "Tillary Cledge",
+  "area": "Downtown Brooklyn \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "tillary cledge.HEIC",
+    "src": "img/tillary-cledge.jpg",
+    "thumb": "img/tillary-cledge-sm.jpg",
+    "lat": 40.696606,
+    "lon": -73.984864,
+    "time": "2025-05-05 14:55"
+   }
+  ]
+ },
+ {
+  "id": "traffic-wallie",
+  "name": "Traffic Wallie",
+  "area": "Lower East Side \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Wallie"
+  ],
+  "photos": [
+   {
+    "file": "traffic wallie.HEIC",
+    "src": "img/traffic-wallie.jpg",
+    "thumb": "img/traffic-wallie-sm.jpg",
+    "lat": 40.719219,
+    "lon": -73.990319,
+    "time": "2025-04-24 19:31"
+   }
+  ]
+ },
+ {
+  "id": "trash-drop",
+  "name": "Trash Drop",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "trash drop.HEIC",
+    "src": "img/trash-drop.jpg",
+    "thumb": "img/trash-drop-sm.jpg",
+    "lat": 40.709003,
+    "lon": -73.924308,
+    "time": "2023-07-26 00:07"
+   }
+  ]
+ },
+ {
+  "id": "up-ledge",
+  "name": "Up Ledge",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "up ledge.HEIC",
+    "src": "img/up-ledge.jpg",
+    "thumb": "img/up-ledge-sm.jpg",
+    "lat": 40.720306,
+    "lon": -73.937653,
+    "time": "2023-08-03 22:20"
+   }
+  ]
+ },
+ {
+  "id": "uphill-bump-over-bar",
+  "name": "Uphill Bump Over Bar",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "uphill bump over bar.HEIC",
+    "src": "img/uphill-bump-over-bar.jpg",
+    "thumb": "img/uphill-bump-over-bar-sm.jpg",
+    "lat": 40.707553,
+    "lon": -73.939933,
+    "time": "2025-04-17 18:15"
+   }
+  ]
+ },
+ {
+  "id": "wall-grind-into-bank",
+  "name": "Wall Grind Into Bank",
+  "area": "Bushwick \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "wall grind into bank.HEIC",
+    "src": "img/wall-grind-into-bank.jpg",
+    "thumb": "img/wall-grind-into-bank-sm.jpg",
+    "lat": 40.707458,
+    "lon": -73.925064,
+    "time": "2023-08-03 18:28"
+   }
+  ]
+ },
+ {
+  "id": "wall-ledge-navy-yard",
+  "name": "Wall Ledge Navy Yard",
+  "area": "Navy Yard \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "wall ledge navy yard.HEIC",
+    "src": "img/wall-ledge-navy-yard.jpg",
+    "thumb": "img/wall-ledge-navy-yard-sm.jpg",
+    "lat": 40.697361,
+    "lon": -73.965422,
+    "time": "2026-08-24 11:59"
+   },
+   {
+    "file": "wallledge navy yard b.HEIC",
+    "src": "img/wallledge-navy-yard-b.jpg",
+    "thumb": "img/wallledge-navy-yard-b-sm.jpg",
+    "lat": 40.697586,
+    "lon": -73.965867,
+    "time": "2026-08-29 06:46"
+   }
+  ]
+ },
+ {
+  "id": "wallie-grind",
+  "name": "Wallie Grind",
+  "area": "Fort Greene \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Wallie"
+  ],
+  "photos": [
+   {
+    "file": "wallie grind.HEIC",
+    "src": "img/wallie-grind.jpg",
+    "thumb": "img/wallie-grind-sm.jpg",
+    "lat": 40.686778,
+    "lon": -73.97805,
+    "time": "2026-10-23 14:44"
+   }
+  ]
+ },
+ {
+  "id": "washington-monument-stair-curbs",
+  "name": "Washington Monument Stair Curbs",
+  "area": "Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Stairs",
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "washington monument stair curbs.HEIC",
+    "src": "img/washington-monument-stair-curbs.jpg",
+    "thumb": "img/washington-monument-stair-curbs-sm.jpg",
+    "lat": 40.709811,
+    "lon": -73.960908,
+    "time": "2023-07-26 14:17"
+   }
+  ]
+ },
+ {
+  "id": "west-village-sombrero",
+  "name": "West Village Sombrero",
+  "area": "Greenwich Village \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "west village sombrero.HEIC",
+    "src": "img/west-village-sombrero.jpg",
+    "thumb": "img/west-village-sombrero-sm.jpg",
+    "lat": 40.730086,
+    "lon": -74.002289,
+    "time": "2025-04-24 17:16"
+   }
+  ]
+ },
+ {
+  "id": "williamsburg-big-rails",
+  "name": "Williamsburg Big Rails",
+  "area": "South Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "williamsburg big rails b.HEIC",
+    "src": "img/williamsburg-big-rails-b.jpg",
+    "thumb": "img/williamsburg-big-rails-b-sm.jpg",
+    "lat": 40.702336,
+    "lon": -73.962036,
+    "time": "2023-07-25 22:11"
+   },
+   {
+    "file": "williamsburg big rails c.HEIC",
+    "src": "img/williamsburg-big-rails-c.jpg",
+    "thumb": "img/williamsburg-big-rails-c-sm.jpg",
+    "lat": 40.702964,
+    "lon": -73.961914,
+    "time": "2023-07-25 22:20"
+   },
+   {
+    "file": "williamsburg big rails.HEIC",
+    "src": "img/williamsburg-big-rails.jpg",
+    "thumb": "img/williamsburg-big-rails-sm.jpg",
+    "lat": 40.702583,
+    "lon": -73.962111,
+    "time": "2023-07-25 22:11"
+   }
+  ]
+ },
+ {
+  "id": "williamsburg-bus-rainbow",
+  "name": "Williamsburg Bus Rainbow",
+  "area": "Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "williamsburg bus rainbow.HEIC",
+    "src": "img/williamsburg-bus-rainbow.jpg",
+    "thumb": "img/williamsburg-bus-rainbow-sm.jpg",
+    "lat": 40.709442,
+    "lon": -73.959869,
+    "time": "2026-08-15 17:30"
+   }
+  ]
+ },
+ {
+  "id": "williamsburg-double-kink",
+  "name": "Williamsburg Double Kink",
+  "area": "South Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "williamsburg double kink b.HEIC",
+    "src": "img/williamsburg-double-kink-b.jpg",
+    "thumb": "img/williamsburg-double-kink-b-sm.jpg",
+    "lat": 40.703164,
+    "lon": -73.960861,
+    "time": "2023-07-25 21:57"
+   },
+   {
+    "file": "williamsburb double kink.HEIC",
+    "src": "img/williamsburb-double-kink.jpg",
+    "thumb": "img/williamsburb-double-kink-sm.jpg",
+    "lat": 40.702611,
+    "lon": -73.960556,
+    "time": "2023-07-25 21:57"
+   }
+  ]
+ },
+ {
+  "id": "world-trade-andrew-wilson-gap-to-curb",
+  "name": "World Trade Andrew Wilson Gap To Curb",
+  "area": "World Trade Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Curb"
+  ],
+  "photos": [
+   {
+    "file": "world trade andrew wilson gap to curb.HEIC",
+    "src": "img/world-trade-andrew-wilson-gap-to-curb.jpg",
+    "thumb": "img/world-trade-andrew-wilson-gap-to-curb-sm.jpg",
+    "lat": 40.711481,
+    "lon": -74.011292,
+    "time": "2025-04-29 14:24"
+   }
+  ]
+ },
+ {
+  "id": "world-trade-ledges",
+  "name": "World Trade Ledges",
+  "area": "World Trade Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "world trade ledges b.HEIC",
+    "src": "img/world-trade-ledges-b.jpg",
+    "thumb": "img/world-trade-ledges-b-sm.jpg",
+    "lat": 40.713147,
+    "lon": -74.011619,
+    "time": "2025-03-31 06:15"
+   },
+   {
+    "file": "world trade ledges.HEIC",
+    "src": "img/world-trade-ledges.jpg",
+    "thumb": "img/world-trade-ledges-sm.jpg",
+    "lat": 40.713136,
+    "lon": -74.011619,
+    "time": "2025-03-31 06:15"
+   }
+  ]
+ },
+ {
+  "id": "world-trade-rail",
+  "name": "World Trade Rail",
+  "area": "World Trade Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "world trade rail.HEIC",
+    "src": "img/world-trade-rail.jpg",
+    "thumb": "img/world-trade-rail-sm.jpg",
+    "lat": 40.712622,
+    "lon": -74.011458,
+    "time": "2025-03-31 06:14"
+   }
+  ]
+ },
+ {
+  "id": "ymca-3-block",
+  "name": "YMCA 3 Block",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Block"
+  ],
+  "photos": [
+   {
+    "file": "ymca 3 block.HEIC",
+    "src": "img/ymca-3-block.jpg",
+    "thumb": "img/ymca-3-block-sm.jpg",
+    "lat": 40.705575,
+    "lon": -73.94155,
+    "time": "2023-08-02 22:07"
+   }
+  ]
+ },
+ {
+  "id": "ymca-hubba",
+  "name": "YMCA Hubba",
+  "area": "East Williamsburg \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Hubba"
+  ],
+  "photos": [
+   {
+    "file": "ymca hubba.HEIC",
+    "src": "img/ymca-hubba.jpg",
+    "thumb": "img/ymca-hubba-sm.jpg",
+    "lat": 40.705569,
+    "lon": -73.941764,
+    "time": "2023-08-02 22:07"
+   }
+  ]
+ },
+ {
+  "id": "zucotti-outledge",
+  "name": "Zuccotti Outledge",
+  "area": "World Trade Center \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "zucotti outledge.HEIC",
+    "src": "img/zucotti-outledge.jpg",
+    "thumb": "img/zucotti-outledge-sm.jpg",
+    "lat": 40.709389,
+    "lon": -74.011397,
+    "time": "2025-04-22 15:27"
+   }
+  ]
+ },
+ {
+  "id": "13-rail",
+  "name": "13 Rail",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "13 rail a.HEIC",
+    "src": "img/13-rail-a.jpg",
+    "thumb": "img/13-rail-a-sm.jpg",
+    "lat": 40.771836,
+    "lon": -73.989328,
+    "time": "2025-04-18 19:27"
+   },
+   {
+    "file": "13 rail b.HEIC",
+    "src": "img/13-rail-b.jpg",
+    "thumb": "img/13-rail-b-sm.jpg",
+    "lat": 40.771808,
+    "lon": -73.989119,
+    "time": "2025-04-18 19:28"
+   }
+  ]
+ },
+ {
+  "id": "5-to-3-stair",
+  "name": "5 To 3 Stair",
+  "area": "Kips Bay \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "5 to 3 stair b.HEIC",
+    "src": "img/5-to-3-stair-b.jpg",
+    "thumb": "img/5-to-3-stair-b-sm.jpg",
+    "lat": 40.740161,
+    "lon": -73.979667,
+    "time": "2024-08-17 16:19"
+   }
+  ]
+ },
+ {
+  "id": "96st-c-ledge",
+  "name": "96 St C Ledge",
+  "area": "Carnegie Hill \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "96st c ledge.HEIC",
+    "src": "img/96st-c-ledge.jpg",
+    "thumb": "img/96st-c-ledge-sm.jpg",
+    "lat": 40.783886,
+    "lon": -73.947328,
+    "time": "2025-04-29 17:17"
+   }
+  ]
+ },
+ {
+  "id": "flushing-drop-grind",
+  "name": "Flushing drop grind",
+  "area": "Flushing \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "Flushing drop grind.HEIC",
+    "src": "img/flushing-drop-grind.jpg",
+    "thumb": "img/flushing-drop-grind-sm.jpg",
+    "lat": 40.762103,
+    "lon": -73.832992,
+    "time": "2025-12-09 17:46"
+   }
+  ]
+ },
+ {
+  "id": "forest-hills-apartments",
+  "name": "Forest hills apartments",
+  "area": "Forest Hills \u00b7 Queens",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "Forest hills apartments.HEIC",
+    "src": "img/forest-hills-apartments.jpg",
+    "thumb": "img/forest-hills-apartments-sm.jpg",
+    "lat": 40.725536,
+    "lon": -73.84735,
+    "time": "2025-12-31 16:57"
+   }
+  ]
+ },
+ {
+  "id": "img-4357",
+  "name": "Pole Jam To Pole",
+  "area": "Bed-Stuy \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "Pole jam to pole.HEIC",
+    "src": "img/img-4357.jpg",
+    "thumb": "img/img-4357-sm.jpg",
+    "lat": 40.679897,
+    "lon": -73.953247,
+    "time": "2026-09-04 06:49"
+   }
+  ]
+ },
+ {
+  "id": "img-4524",
+  "name": "Atlantic Ave Hubba",
+  "area": "Prospect Heights \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Hubba"
+  ],
+  "photos": [
+   {
+    "file": "Atlantic ave hubba.HEIC",
+    "src": "img/img-4524.jpg",
+    "thumb": "img/img-4524-sm.jpg",
+    "lat": 40.678703,
+    "lon": -73.953322,
+    "time": "2026-09-17 18:18"
+   }
+  ]
+ },
+ {
+  "id": "img-4679",
+  "name": "Crown Heights Bump To Rail",
+  "area": "Bed-Stuy \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "Crown heights Bump to rail.HEIC",
+    "src": "img/img-4679.jpg",
+    "thumb": "img/img-4679-sm.jpg",
+    "lat": 40.680519,
+    "lon": -73.953292,
+    "time": "2026-09-29 16:24"
+   }
+  ]
+ },
+ {
+  "id": "laguardia-brick-banks",
+  "name": "LaGuardia Brick Banks",
+  "area": "Astoria \u00b7 Queens",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "Laguardia Brick Banks.HEIC",
+    "src": "img/laguardia-brick-banks.jpg",
+    "thumb": "img/laguardia-brick-banks-sm.jpg",
+    "lat": 40.780106,
+    "lon": -73.906503,
+    "time": "2025-05-01 18:30"
+   },
+   {
+    "file": "Laguardia brick banks b.HEIC",
+    "src": "img/laguardia-brick-banks-b.jpg",
+    "thumb": "img/laguardia-brick-banks-b-sm.jpg",
+    "lat": 40.780047,
+    "lon": -73.906442,
+    "time": "2025-05-01 21:05"
+   }
+  ]
+ },
+ {
+  "id": "bank-gaps",
+  "name": "Bank Gaps",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "bank gaps.HEIC",
+    "src": "img/bank-gaps.jpg",
+    "thumb": "img/bank-gaps-sm.jpg",
+    "lat": 40.774503,
+    "lon": -73.986947,
+    "time": "2025-04-18 17:32"
+   }
+  ]
+ },
+ {
+  "id": "battery-wood-rail-to-rock-bank",
+  "name": "Battery Wood Rail To Rock Bank",
+  "area": "Battery Park City \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "battery wood rail to rock bank a.HEIC",
+    "src": "img/battery-wood-rail-to-rock-bank-a.jpg",
+    "thumb": "img/battery-wood-rail-to-rock-bank-a-sm.jpg",
+    "lat": 40.714683,
+    "lon": -74.017228,
+    "time": "2023-08-05 15:50"
+   },
+   {
+    "file": "battery wood rail to rock bank b.HEIC",
+    "src": "img/battery-wood-rail-to-rock-bank-b.jpg",
+    "thumb": "img/battery-wood-rail-to-rock-bank-b-sm.jpg",
+    "lat": 40.714692,
+    "lon": -74.017119,
+    "time": "2023-08-05 15:20"
+   },
+   {
+    "file": "battery wood rail to rock bank c.HEIC",
+    "src": "img/battery-wood-rail-to-rock-bank-c.jpg",
+    "thumb": "img/battery-wood-rail-to-rock-bank-c-sm.jpg",
+    "lat": 40.714592,
+    "lon": -74.017325,
+    "time": "2023-08-05 15:50"
+   }
+  ]
+ },
+ {
+  "id": "black-ferrari-ledges",
+  "name": "Black Ferrari Ledges",
+  "area": "Midtown East \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "black ferrari ledges b.HEIC",
+    "src": "img/black-ferrari-ledges-b.jpg",
+    "thumb": "img/black-ferrari-ledges-b-sm.jpg",
+    "lat": 40.760661,
+    "lon": -73.972336,
+    "time": "2025-03-12 19:27"
+   },
+   {
+    "file": "black ferrari ledges.HEIC",
+    "src": "img/black-ferrari-ledges.jpg",
+    "thumb": "img/black-ferrari-ledges-sm.jpg",
+    "lat": 40.760611,
+    "lon": -73.972397,
+    "time": "2025-03-12 19:27"
+   }
+  ]
+ },
+ {
+  "id": "black-up-ledge",
+  "name": "Black Up Ledge",
+  "area": "Times Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "black up ledge.HEIC",
+    "src": "img/black-up-ledge.jpg",
+    "thumb": "img/black-up-ledge-sm.jpg",
+    "lat": 40.759494,
+    "lon": -73.981208,
+    "time": "2025-04-29 19:43"
+   }
+  ]
+ },
+ {
+  "id": "blocked-c-ledge",
+  "name": "Blocked C Ledge",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "blocked c ledge.HEIC",
+    "src": "img/blocked-c-ledge.jpg",
+    "thumb": "img/blocked-c-ledge-sm.jpg",
+    "lat": 40.770764,
+    "lon": -73.986319,
+    "time": "2025-04-18 19:33"
+   }
+  ]
+ },
+ {
+  "id": "brick-9",
+  "name": "Brick 9",
+  "area": "Turtle Bay \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "brick 9 a.HEIC",
+    "src": "img/brick-9-a.jpg",
+    "thumb": "img/brick-9-a-sm.jpg",
+    "lat": 40.753297,
+    "lon": -73.970475,
+    "time": "2024-08-17 13:56"
+   },
+   {
+    "file": "brick 9 b.HEIC",
+    "src": "img/brick-9-b.jpg",
+    "thumb": "img/brick-9-b-sm.jpg",
+    "lat": 40.753361,
+    "lon": -73.970497,
+    "time": "2024-08-17 13:55"
+   },
+   {
+    "file": "brick 9 c.HEIC",
+    "src": "img/brick-9-c.jpg",
+    "thumb": "img/brick-9-c-sm.jpg",
+    "lat": 40.753322,
+    "lon": -73.970489,
+    "time": "2024-08-17 13:55"
+   },
+   {
+    "file": "brick 9 d.HEIC",
+    "src": "img/brick-9-d.jpg",
+    "thumb": "img/brick-9-d-sm.jpg",
+    "lat": 40.753831,
+    "lon": -73.970039,
+    "time": "2024-08-17 14:45"
+   }
+  ]
+ },
+ {
+  "id": "bronx-bump-to-box",
+  "name": "Bronx Bump To Box",
+  "area": "Concourse \u00b7 Bronx",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "bronx bump to box b.HEIC",
+    "src": "img/bronx-bump-to-box-b.jpg",
+    "thumb": "img/bronx-bump-to-box-b-sm.jpg",
+    "lat": 40.831208,
+    "lon": -73.921067,
+    "time": "2025-06-12 18:27"
+   },
+   {
+    "file": "bronc bump to box a.HEIC",
+    "src": "img/bronc-bump-to-box-a.jpg",
+    "thumb": "img/bronc-bump-to-box-a-sm.jpg",
+    "lat": 40.83115,
+    "lon": -73.92125,
+    "time": "2025-06-12 18:27"
+   }
+  ]
+ },
+ {
+  "id": "bronx-tail-drop",
+  "name": "Bronx Tail Drop",
+  "area": "Concourse \u00b7 Bronx",
+  "notes": "",
+  "tags": [
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "bronx tail drop.HEIC",
+    "src": "img/bronx-tail-drop.jpg",
+    "thumb": "img/bronx-tail-drop-sm.jpg",
+    "lat": 40.830639,
+    "lon": -73.919603,
+    "time": "2025-06-12 16:32"
+   }
+  ]
+ },
+ {
+  "id": "bronx-zoo-shotgun-rail",
+  "name": "Bronx Zoo Shotgun Rail",
+  "area": "West Farms \u00b7 Bronx",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "bronx zoo shotgun rail.HEIC",
+    "src": "img/bronx-zoo-shotgun-rail.jpg",
+    "thumb": "img/bronx-zoo-shotgun-rail-sm.jpg",
+    "lat": 40.841567,
+    "lon": -73.873536,
+    "time": "2025-06-04 12:36"
+   }
+  ]
+ },
+ {
+  "id": "bryant-double-set",
+  "name": "Bryant Double Set",
+  "area": "Midtown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "bryant double set.HEIC",
+    "src": "img/bryant-double-set.jpg",
+    "thumb": "img/bryant-double-set-sm.jpg",
+    "lat": 40.754669,
+    "lon": -73.984139,
+    "time": "2025-04-05 15:14"
+   }
+  ]
+ },
+ {
+  "id": "bump-over-bar-to-grate",
+  "name": "Bump Over Bar To Grate",
+  "area": "Crown Heights \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump",
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "bump over bar to grate a.HEIC",
+    "src": "img/bump-over-bar-to-grate-a.jpg",
+    "thumb": "img/bump-over-bar-to-grate-a-sm.jpg",
+    "lat": 40.674992,
+    "lon": -73.927581,
+    "time": "2025-10-07 17:05"
+   },
+   {
+    "file": "bump over brar to grate b.HEIC",
+    "src": "img/bump-over-brar-to-grate-b.jpg",
+    "thumb": "img/bump-over-brar-to-grate-b-sm.jpg",
+    "lat": 40.675056,
+    "lon": -73.927436,
+    "time": "2025-10-07 17:05"
+   }
+  ]
+ },
+ {
+  "id": "bump-to-bump-line",
+  "name": "Bump To Bump Line",
+  "area": "Cypress Hills \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "bump to bump line b.HEIC",
+    "src": "img/bump-to-bump-line-b.jpg",
+    "thumb": "img/bump-to-bump-line-b-sm.jpg",
+    "lat": 40.676914,
+    "lon": -73.870072,
+    "time": "2023-03-10 12:42"
+   },
+   {
+    "file": "bump to bump line c.HEIC",
+    "src": "img/bump-to-bump-line-c.jpg",
+    "thumb": "img/bump-to-bump-line-c-sm.jpg",
+    "lat": 40.676906,
+    "lon": -73.870217,
+    "time": "2023-03-10 12:42"
+   },
+   {
+    "file": "bump to bump line.HEIC",
+    "src": "img/bump-to-bump-line.jpg",
+    "thumb": "img/bump-to-bump-line-sm.jpg",
+    "lat": 40.677136,
+    "lon": -73.870186,
+    "time": "2023-03-10 12:42"
+   }
+  ]
+ },
+ {
+  "id": "cbs",
+  "name": "CBS",
+  "area": "Times Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "cbs a.HEIC",
+    "src": "img/cbs-a.jpg",
+    "thumb": "img/cbs-a-sm.jpg",
+    "lat": 40.760936,
+    "lon": -73.978797,
+    "time": "2025-03-23 13:19"
+   },
+   {
+    "file": "cbs b.HEIC",
+    "src": "img/cbs-b.jpg",
+    "thumb": "img/cbs-b-sm.jpg",
+    "lat": 40.761117,
+    "lon": -73.978081,
+    "time": "2025-03-23 13:17"
+   },
+   {
+    "file": "cbs c.HEIC",
+    "src": "img/cbs-c.jpg",
+    "thumb": "img/cbs-c-sm.jpg",
+    "lat": 40.760967,
+    "lon": -73.978761,
+    "time": "2025-03-23 15:06"
+   },
+   {
+    "file": "cbs d.HEIC",
+    "src": "img/cbs-d.jpg",
+    "thumb": "img/cbs-d-sm.jpg",
+    "lat": 40.760967,
+    "lon": -73.978806,
+    "time": "2025-03-23 15:06"
+   }
+  ]
+ },
+ {
+  "id": "celly-to-gate",
+  "name": "Celly To Gate",
+  "area": "Prospect Lefferts Gardens \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "celly to gate.HEIC",
+    "src": "img/celly-to-gate.jpg",
+    "thumb": "img/celly-to-gate-sm.jpg",
+    "lat": 40.665189,
+    "lon": -73.953803,
+    "time": "2026-08-05 13:54"
+   }
+  ]
+ },
+ {
+  "id": "central-park-c-ledge",
+  "name": "Central Park C Ledge",
+  "area": "Central Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "central park c ledge.HEIC",
+    "src": "img/central-park-c-ledge.jpg",
+    "thumb": "img/central-park-c-ledge-sm.jpg",
+    "lat": 40.784222,
+    "lon": -73.958733,
+    "time": "2025-05-18 17:21"
+   }
+  ]
+ },
+ {
+  "id": "central-park-square-rail-shootout",
+  "name": "Central Park Square Rail Shootout",
+  "area": "Central Park \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "central park square rail shootout.HEIC",
+    "src": "img/central-park-square-rail-shootout.jpg",
+    "thumb": "img/central-park-square-rail-shootout-sm.jpg",
+    "lat": 40.782281,
+    "lon": -73.962281,
+    "time": "2025-05-18 17:32"
+   },
+   {
+    "file": "central park sq rail shootout b.HEIC",
+    "src": "img/central-park-sq-rail-shootout-b.jpg",
+    "thumb": "img/central-park-sq-rail-shootout-b-sm.jpg",
+    "lat": 40.782064,
+    "lon": -73.962617,
+    "time": "2025-05-18 17:32"
+   }
+  ]
+ },
+ {
+  "id": "coney-island-shootout-rail",
+  "name": "Coney Island Shootout Rail",
+  "area": "Coney Island \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "coney island shootout rail b.HEIC",
+    "src": "img/coney-island-shootout-rail-b.jpg",
+    "thumb": "img/coney-island-shootout-rail-b-sm.jpg",
+    "lat": 40.573169,
+    "lon": -73.980836,
+    "time": "2025-06-11 17:07"
+   },
+   {
+    "file": "coney island shootout rail.HEIC",
+    "src": "img/coney-island-shootout-rail.jpg",
+    "thumb": "img/coney-island-shootout-rail-sm.jpg",
+    "lat": 40.573222,
+    "lon": -73.980928,
+    "time": "2025-06-11 17:06"
+   }
+  ]
+ },
+ {
+  "id": "coney-island-wall-rail",
+  "name": "Coney Island Wall Rail",
+  "area": "Coney Island \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "coney island wall rail a.HEIC",
+    "src": "img/coney-island-wall-rail-a.jpg",
+    "thumb": "img/coney-island-wall-rail-a-sm.jpg",
+    "lat": 40.573189,
+    "lon": -73.983094,
+    "time": "2025-06-11 20:17"
+   },
+   {
+    "file": "coney island wall rail b.HEIC",
+    "src": "img/coney-island-wall-rail-b.jpg",
+    "thumb": "img/coney-island-wall-rail-b-sm.jpg",
+    "lat": 40.573186,
+    "lon": -73.983086,
+    "time": "2025-06-11 20:17"
+   }
+  ]
+ },
+ {
+  "id": "crown-heights-taildrop",
+  "name": "Crown Heights Taildrop",
+  "area": "Prospect Lefferts Gardens \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Drop"
+  ],
+  "photos": [
+   {
+    "file": "crown heights taildrop.HEIC",
+    "src": "img/crown-heights-taildrop.jpg",
+    "thumb": "img/crown-heights-taildrop-sm.jpg",
+    "lat": 40.663308,
+    "lon": -73.954003,
+    "time": "2026-08-02 17:14"
+   }
+  ]
+ },
+ {
+  "id": "diamond-metal-ledge",
+  "name": "Diamond Metal Ledge",
+  "area": "Murray Hill \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "diamond metal ledge.HEIC",
+    "src": "img/diamond-metal-ledge.jpg",
+    "thumb": "img/diamond-metal-ledge-sm.jpg",
+    "lat": 40.748364,
+    "lon": -73.976831,
+    "time": "2026-10-27 17:08"
+   }
+  ]
+ },
+ {
+  "id": "doorway-to-stair",
+  "name": "Doorway To Stair",
+  "area": "Carnegie Hill \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "doorway to stair a.HEIC",
+    "src": "img/doorway-to-stair-a.jpg",
+    "thumb": "img/doorway-to-stair-a-sm.jpg",
+    "lat": 40.785247,
+    "lon": -73.951828,
+    "time": "2025-05-18 17:12"
+   },
+   {
+    "file": "doorway to stair b.HEIC",
+    "src": "img/doorway-to-stair-b.jpg",
+    "thumb": "img/doorway-to-stair-b-sm.jpg",
+    "lat": 40.785278,
+    "lon": -73.951583,
+    "time": "2025-05-18 17:12"
+   }
+  ]
+ },
+ {
+  "id": "down-and-flat-shootout-rail",
+  "name": "Down And Flat Shootout Rail",
+  "area": "Brownsville \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "down and flat shootout rail.HEIC",
+    "src": "img/down-and-flat-shootout-rail.jpg",
+    "thumb": "img/down-and-flat-shootout-rail-sm.jpg",
+    "lat": 40.670411,
+    "lon": -73.917847,
+    "time": "2026-08-15 11:24"
+   }
+  ]
+ },
+ {
+  "id": "flatbush-brick-bank",
+  "name": "Flatbush Brick Bank",
+  "area": "Crown Heights \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "flatbush brick bank a.HEIC",
+    "src": "img/flatbush-brick-bank-a.jpg",
+    "thumb": "img/flatbush-brick-bank-a-sm.jpg",
+    "lat": 40.664067,
+    "lon": -73.928506,
+    "time": "2025-05-19 18:03"
+   },
+   {
+    "file": "flatbush brick bank b.HEIC",
+    "src": "img/flatbush-brick-bank-b.jpg",
+    "thumb": "img/flatbush-brick-bank-b-sm.jpg",
+    "lat": 40.663986,
+    "lon": -73.928475,
+    "time": "2025-05-19 18:02"
+   }
+  ]
+ },
+ {
+  "id": "flatbush-roll-in",
+  "name": "Flatbush Roll In",
+  "area": "Prospect Lefferts Gardens \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ramp"
+  ],
+  "photos": [
+   {
+    "file": "flatbush roll in b.HEIC",
+    "src": "img/flatbush-roll-in-b.jpg",
+    "thumb": "img/flatbush-roll-in-b-sm.jpg",
+    "lat": 40.658633,
+    "lon": -73.950225,
+    "time": "2026-08-19 11:20"
+   },
+   {
+    "file": "flatbush roll in.HEIC",
+    "src": "img/flatbush-roll-in.jpg",
+    "thumb": "img/flatbush-roll-in-sm.jpg",
+    "lat": 40.658631,
+    "lon": -73.950242,
+    "time": "2026-08-19 11:20"
+   }
+  ]
+ },
+ {
+  "id": "flatbush-white-banks",
+  "name": "Flatbush White Banks",
+  "area": "Brownsville \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "flatbush white banks b.HEIC",
+    "src": "img/flatbush-white-banks-b.jpg",
+    "thumb": "img/flatbush-white-banks-b-sm.jpg",
+    "lat": 40.662911,
+    "lon": -73.926903,
+    "time": "2025-05-19 15:31"
+   },
+   {
+    "file": "flatbush white banks.HEIC",
+    "src": "img/flatbush-white-banks.jpg",
+    "thumb": "img/flatbush-white-banks-sm.jpg",
+    "lat": 40.662875,
+    "lon": -73.926956,
+    "time": "2025-05-19 15:31"
+   }
+  ]
+ },
+ {
+  "id": "funky-kickers-tribeca",
+  "name": "Funky Kickers Tribeca",
+  "area": "Meatpacking \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ramp"
+  ],
+  "photos": [
+   {
+    "file": "funky kickers tribeca.HEIC",
+    "src": "img/funky-kickers-tribeca.jpg",
+    "thumb": "img/funky-kickers-tribeca-sm.jpg",
+    "lat": 40.738114,
+    "lon": -74.010331,
+    "time": "2026-01-07 10:59"
+   }
+  ]
+ },
+ {
+  "id": "gap-to-grate-cobble-hill",
+  "name": "Gap To Grate Cobble Hill",
+  "area": "Gowanus \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "gap to grate cobble hill b.HEIC",
+    "src": "img/gap-to-grate-cobble-hill-b.jpg",
+    "thumb": "img/gap-to-grate-cobble-hill-b-sm.jpg",
+    "lat": 40.679936,
+    "lon": -73.989472,
+    "time": "2025-10-21 14:24"
+   },
+   {
+    "file": "gap to grate cobble hill.HEIC",
+    "src": "img/gap-to-grate-cobble-hill.jpg",
+    "thumb": "img/gap-to-grate-cobble-hill-sm.jpg",
+    "lat": 40.679919,
+    "lon": -73.989272,
+    "time": "2025-10-21 14:24"
+   }
+  ]
+ },
+ {
+  "id": "gap-to-square-rail",
+  "name": "Gap To Square Rail",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "gap to square rail a.HEIC",
+    "src": "img/gap-to-square-rail-a.jpg",
+    "thumb": "img/gap-to-square-rail-a-sm.jpg",
+    "lat": 40.772475,
+    "lon": -73.986472,
+    "time": "2025-04-18 17:29"
+   },
+   {
+    "file": "gap to square rail b.HEIC",
+    "src": "img/gap-to-square-rail-b.jpg",
+    "thumb": "img/gap-to-square-rail-b-sm.jpg",
+    "lat": 40.772475,
+    "lon": -73.986497,
+    "time": "2025-04-18 17:30"
+   }
+  ]
+ },
+ {
+  "id": "gap-to-stair",
+  "name": "Gap To Stair",
+  "area": "Flatiron \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "gap to stair b.HEIC",
+    "src": "img/gap-to-stair-b.jpg",
+    "thumb": "img/gap-to-stair-b-sm.jpg",
+    "lat": 40.737581,
+    "lon": -73.989578,
+    "time": "2026-11-12 09:50"
+   },
+   {
+    "file": "gap to stair.HEIC",
+    "src": "img/gap-to-stair.jpg",
+    "thumb": "img/gap-to-stair-sm.jpg",
+    "lat": 40.737633,
+    "lon": -73.989517,
+    "time": "2026-11-12 09:51"
+   }
+  ]
+ },
+ {
+  "id": "gate-outrail",
+  "name": "Gate Outrail",
+  "area": "Murray Hill \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "gate outrail b.HEIC",
+    "src": "img/gate-outrail-b.jpg",
+    "thumb": "img/gate-outrail-b-sm.jpg",
+    "lat": 40.747703,
+    "lon": -73.974914,
+    "time": "2026-10-27 17:06"
+   },
+   {
+    "file": "gate outrail.HEIC",
+    "src": "img/gate-outrail.jpg",
+    "thumb": "img/gate-outrail-sm.jpg",
+    "lat": 40.747936,
+    "lon": -73.974678,
+    "time": "2026-10-27 17:06"
+   }
+  ]
+ },
+ {
+  "id": "harlem-bump-over-fence",
+  "name": "Harlem Bump Over Fence",
+  "area": "Washington Heights \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Bump",
+   "Fence"
+  ],
+  "photos": [
+   {
+    "file": "harlem bump over fence a.HEIC",
+    "src": "img/harlem-bump-over-fence-a.jpg",
+    "thumb": "img/harlem-bump-over-fence-a-sm.jpg",
+    "lat": 40.837728,
+    "lon": -73.943833,
+    "time": "2025-06-12 14:16"
+   },
+   {
+    "file": "harlem bump over fence b.HEIC",
+    "src": "img/harlem-bump-over-fence-b.jpg",
+    "thumb": "img/harlem-bump-over-fence-b-sm.jpg",
+    "lat": 40.837733,
+    "lon": -73.943833,
+    "time": "2025-06-12 14:16"
+   },
+   {
+    "file": "harlem bump over fence c.HEIC",
+    "src": "img/harlem-bump-over-fence-c.jpg",
+    "thumb": "img/harlem-bump-over-fence-c-sm.jpg",
+    "lat": 40.837764,
+    "lon": -73.9439,
+    "time": "2025-06-12 14:20"
+   },
+   {
+    "file": "harlem bump over fence d.HEIC",
+    "src": "img/harlem-bump-over-fence-d.jpg",
+    "thumb": "img/harlem-bump-over-fence-d-sm.jpg",
+    "lat": 40.837753,
+    "lon": -73.943817,
+    "time": "2025-06-12 14:20"
+   }
+  ]
+ },
+ {
+  "id": "hudson-philly-step",
+  "name": "Hudson Philly Step",
+  "area": "West Village \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Philly Step"
+  ],
+  "photos": [
+   {
+    "file": "hudson philly step.HEIC",
+    "src": "img/hudson-philly-step.jpg",
+    "thumb": "img/hudson-philly-step-sm.jpg",
+    "lat": 40.732036,
+    "lon": -74.010492,
+    "time": "2025-10-16 10:18"
+   }
+  ]
+ },
+ {
+  "id": "keith-haring",
+  "name": "Keith Haring",
+  "area": "West Village \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "keith haring a.HEIC",
+    "src": "img/keith-haring-a.jpg",
+    "thumb": "img/keith-haring-a-sm.jpg",
+    "lat": 40.737361,
+    "lon": -74.001258,
+    "time": "2025-03-28 14:23"
+   },
+   {
+    "file": "keith haring b.HEIC",
+    "src": "img/keith-haring-b.jpg",
+    "thumb": "img/keith-haring-b-sm.jpg",
+    "lat": 40.737842,
+    "lon": -74.000336,
+    "time": "2025-03-28 14:22"
+   }
+  ]
+ },
+ {
+  "id": "kicker-over-bike-lane",
+  "name": "Kicker Over Bike Lane",
+  "area": "Prospect Lefferts Gardens \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ramp"
+  ],
+  "photos": [
+   {
+    "file": "kicker over bike lane.HEIC",
+    "src": "img/kicker-over-bike-lane.jpg",
+    "thumb": "img/kicker-over-bike-lane-sm.jpg",
+    "lat": 40.663739,
+    "lon": -73.963075,
+    "time": "2026-10-21 15:54"
+   }
+  ]
+ },
+ {
+  "id": "low-ledges",
+  "name": "Low Ledges",
+  "area": "Kips Bay \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "low ledges a.HEIC",
+    "src": "img/low-ledges-a.jpg",
+    "thumb": "img/low-ledges-a-sm.jpg",
+    "lat": 40.744106,
+    "lon": -73.979392,
+    "time": "2025-07-24 22:43"
+   }
+  ]
+ },
+ {
+  "id": "marble-plaza",
+  "name": "Marble Plaza",
+  "area": "Koreatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "marble plaza.HEIC",
+    "src": "img/marble-plaza.jpg",
+    "thumb": "img/marble-plaza-sm.jpg",
+    "lat": 40.747056,
+    "lon": -73.990539,
+    "time": "2024-08-17 13:16"
+   }
+  ]
+ },
+ {
+  "id": "midtown-bank-ledge",
+  "name": "Midtown Bank Ledge",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "midtown bank ledge.HEIC",
+    "src": "img/midtown-bank-ledge.jpg",
+    "thumb": "img/midtown-bank-ledge-sm.jpg",
+    "lat": 40.771069,
+    "lon": -73.981567,
+    "time": "2025-03-22 18:22"
+   }
+  ]
+ },
+ {
+  "id": "midtown-black-ledges",
+  "name": "Midtown Black Ledges",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "midtown black ledges.HEIC",
+    "src": "img/midtown-black-ledges.jpg",
+    "thumb": "img/midtown-black-ledges-sm.jpg",
+    "lat": 40.770067,
+    "lon": -73.983033,
+    "time": "2025-03-22 18:48"
+   }
+  ]
+ },
+ {
+  "id": "midtown-fountain-pad",
+  "name": "Midtown Fountain Pad",
+  "area": "Koreatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "midtown fountain pad.HEIC",
+    "src": "img/midtown-fountain-pad.jpg",
+    "thumb": "img/midtown-fountain-pad-sm.jpg",
+    "lat": 40.747056,
+    "lon": -73.990525,
+    "time": "2024-08-17 13:16"
+   }
+  ]
+ },
+ {
+  "id": "midtown-shotgun-rail",
+  "name": "Midtown Shotgun Rail",
+  "area": "Midtown East \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "midtown shotgun rail.HEIC",
+    "src": "img/midtown-shotgun-rail.jpg",
+    "thumb": "img/midtown-shotgun-rail-sm.jpg",
+    "lat": 40.762642,
+    "lon": -73.969222,
+    "time": "2026-09-19 10:33"
+   }
+  ]
+ },
+ {
+  "id": "midtwon-wall-rail",
+  "name": "Midtown Wall Rail",
+  "area": "Upper East Side \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "midtwon wall rail a.HEIC",
+    "src": "img/midtwon-wall-rail-a.jpg",
+    "thumb": "img/midtwon-wall-rail-a-sm.jpg",
+    "lat": 40.765686,
+    "lon": -73.961022,
+    "time": "2025-07-16 18:34"
+   }
+  ]
+ },
+ {
+  "id": "night-6-rail",
+  "name": "Night 6 Rail",
+  "area": "Times Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "night 6 rail.HEIC",
+    "src": "img/night-6-rail.jpg",
+    "thumb": "img/night-6-rail-sm.jpg",
+    "lat": 40.762925,
+    "lon": -73.9784,
+    "time": "2025-03-22 19:30"
+   }
+  ]
+ },
+ {
+  "id": "not-even-sure",
+  "name": "Not Even Sure",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "not even sure b.HEIC",
+    "src": "img/not-even-sure-b.jpg",
+    "thumb": "img/not-even-sure-b-sm.jpg",
+    "lat": 40.772914,
+    "lon": -73.991944,
+    "time": "2025-10-16 19:31"
+   },
+   {
+    "file": "not even sure.HEIC",
+    "src": "img/not-even-sure.jpg",
+    "thumb": "img/not-even-sure-sm.jpg",
+    "lat": 40.772861,
+    "lon": -73.991675,
+    "time": "2025-10-16 19:31"
+   }
+  ]
+ },
+ {
+  "id": "over-rail-into-bank-through-doorway",
+  "name": "Over Rail Into Bank Through Doorway",
+  "area": "Concourse \u00b7 Bronx",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "over rail into bank through doorway a.HEIC",
+    "src": "img/over-rail-into-bank-through-doorway-a.jpg",
+    "thumb": "img/over-rail-into-bank-through-doorway-a-sm.jpg",
+    "lat": 40.829289,
+    "lon": -73.921044,
+    "time": "2025-06-12 18:15"
+   },
+   {
+    "file": "over rail into bank through doorway b.HEIC",
+    "src": "img/over-rail-into-bank-through-doorway-b.jpg",
+    "thumb": "img/over-rail-into-bank-through-doorway-b-sm.jpg",
+    "lat": 40.829283,
+    "lon": -73.920989,
+    "time": "2025-06-12 16:59"
+   }
+  ]
+ },
+ {
+  "id": "park-slope-10-rail",
+  "name": "Park Slope 10 Rail",
+  "area": "Park Slope \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "park slope 10 rail b.HEIC",
+    "src": "img/park-slope-10-rail-b.jpg",
+    "thumb": "img/park-slope-10-rail-b-sm.jpg",
+    "lat": 40.667489,
+    "lon": -73.977639,
+    "time": "2026-08-19 16:12"
+   },
+   {
+    "file": "park slope 10 rail.HEIC",
+    "src": "img/park-slope-10-rail.jpg",
+    "thumb": "img/park-slope-10-rail-sm.jpg",
+    "lat": 40.667461,
+    "lon": -73.977561,
+    "time": "2026-08-19 16:12"
+   },
+   {
+    "file": "parkslope 10 rail c.HEIC",
+    "src": "img/parkslope-10-rail-c.jpg",
+    "thumb": "img/parkslope-10-rail-c-sm.jpg",
+    "lat": 40.667469,
+    "lon": -73.977592,
+    "time": "2026-08-19 16:13"
+   }
+  ]
+ },
+ {
+  "id": "park-slope-church-round-ledges",
+  "name": "Park Slope Church Round Ledges",
+  "area": "Park Slope \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "park slope church round ledges.HEIC",
+    "src": "img/park-slope-church-round-ledges.jpg",
+    "thumb": "img/park-slope-church-round-ledges-sm.jpg",
+    "lat": 40.673456,
+    "lon": -73.975808,
+    "time": "2026-10-21 16:22"
+   }
+  ]
+ },
+ {
+  "id": "parkslope-round-ledges",
+  "name": "Park Slope Round Ledges",
+  "area": "Park Slope \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "parkslope round ledges b.HEIC",
+    "src": "img/parkslope-round-ledges-b.jpg",
+    "thumb": "img/parkslope-round-ledges-b-sm.jpg",
+    "lat": 40.673364,
+    "lon": -73.976411,
+    "time": "2026-10-28 14:03"
+   }
+  ]
+ },
+ {
+  "id": "pier-26",
+  "name": "Pier 26",
+  "area": "Tribeca \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "peir 26.HEIC",
+    "src": "img/peir-26.jpg",
+    "thumb": "img/peir-26-sm.jpg",
+    "lat": 40.720792,
+    "lon": -74.013681,
+    "time": "2026-11-06 14:33"
+   },
+   {
+    "file": "pier 26 b.HEIC",
+    "src": "img/pier-26-b.jpg",
+    "thumb": "img/pier-26-b-sm.jpg",
+    "lat": 40.721633,
+    "lon": -74.014497,
+    "time": "2026-11-06 14:35"
+   },
+   {
+    "file": "pier 26 c.HEIC",
+    "src": "img/pier-26-c.jpg",
+    "thumb": "img/pier-26-c-sm.jpg",
+    "lat": 40.71975,
+    "lon": -74.014764,
+    "time": "2026-11-06 14:39"
+   }
+  ]
+ },
+ {
+  "id": "roll-on-rail-splat",
+  "name": "Roll On Rail Splat",
+  "area": "Midtown East \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "roll on rail splat.HEIC",
+    "src": "img/roll-on-rail-splat.jpg",
+    "thumb": "img/roll-on-rail-splat-sm.jpg",
+    "lat": 40.757636,
+    "lon": -73.973281,
+    "time": "2025-05-17 18:37"
+   }
+  ]
+ },
+ {
+  "id": "seagrams-outledge",
+  "name": "Seagrams Outledge",
+  "area": "Midtown East \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "seagrams outledge a.HEIC",
+    "src": "img/seagrams-outledge-a.jpg",
+    "thumb": "img/seagrams-outledge-a-sm.jpg",
+    "lat": 40.7589,
+    "lon": -73.972297,
+    "time": "2025-03-23 18:47"
+   },
+   {
+    "file": "seagrams outledge b.HEIC",
+    "src": "img/seagrams-outledge-b.jpg",
+    "thumb": "img/seagrams-outledge-b-sm.jpg",
+    "lat": 40.75885,
+    "lon": -73.971619,
+    "time": "2025-03-23 18:48"
+   },
+   {
+    "file": "seagrams outledge c.HEIC",
+    "src": "img/seagrams-outledge-c.jpg",
+    "thumb": "img/seagrams-outledge-c-sm.jpg",
+    "lat": 40.758883,
+    "lon": -73.971681,
+    "time": "2025-03-23 18:53"
+   }
+  ]
+ },
+ {
+  "id": "sidewalk-bump-through-tree",
+  "name": "Sidewalk Bump Through Tree",
+  "area": "Prospect Heights \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "sidewalk bump through tree.HEIC",
+    "src": "img/sidewalk-bump-through-tree.jpg",
+    "thumb": "img/sidewalk-bump-through-tree-sm.jpg",
+    "lat": 40.678692,
+    "lon": -73.964639,
+    "time": "2026-09-26 09:34"
+   }
+  ]
+ },
+ {
+  "id": "small-bump-over-flat",
+  "name": "Small Bump Over Flat",
+  "area": "Crown Heights \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "small bump over flat.HEIC",
+    "src": "img/small-bump-over-flat.jpg",
+    "thumb": "img/small-bump-over-flat-sm.jpg",
+    "lat": 40.672622,
+    "lon": -73.950119,
+    "time": "2023-08-06 17:49"
+   }
+  ]
+ },
+ {
+  "id": "station-over-rail-into-bank",
+  "name": "Station Over Rail Into Bank",
+  "area": "Midtown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Bank"
+  ],
+  "photos": [
+   {
+    "file": "station over rail into bank a.HEIC",
+    "src": "img/station-over-rail-into-bank-a.jpg",
+    "thumb": "img/station-over-rail-into-bank-a-sm.jpg",
+    "lat": 40.754944,
+    "lon": -73.98445,
+    "time": "2025-05-17 20:50"
+   },
+   {
+    "file": "station over rail into bank b.HEIC",
+    "src": "img/station-over-rail-into-bank-b.jpg",
+    "thumb": "img/station-over-rail-into-bank-b-sm.jpg",
+    "lat": 40.754647,
+    "lon": -73.984147,
+    "time": "2025-05-17 20:50"
+   }
+  ]
+ },
+ {
+  "id": "steep-apartment-rail",
+  "name": "Steep Apartment Rail",
+  "area": "Ocean Hill \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "steep apartment rail.HEIC",
+    "src": "img/steep-apartment-rail.jpg",
+    "thumb": "img/steep-apartment-rail-sm.jpg",
+    "lat": 40.680633,
+    "lon": -73.911422,
+    "time": "2024-08-14 19:09"
+   },
+   {
+    "file": "steep apt rail b.HEIC",
+    "src": "img/steep-apt-rail-b.jpg",
+    "thumb": "img/steep-apt-rail-b-sm.jpg",
+    "lat": 40.680683,
+    "lon": -73.911461,
+    "time": "2024-08-14 19:10"
+   }
+  ]
+ },
+ {
+  "id": "sully-bump-over-bar-to-grind",
+  "name": "Sully Bump Over Bar To Grind",
+  "area": "Flatbush \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "sully bump over bar to grind.HEIC",
+    "src": "img/sully-bump-over-bar-to-grind.jpg",
+    "thumb": "img/sully-bump-over-bar-to-grind-sm.jpg",
+    "lat": 40.650325,
+    "lon": -73.966033,
+    "time": "2026-08-17 18:23"
+   }
+  ]
+ },
+ {
+  "id": "sunroof-drop-over-fence",
+  "name": "Sunroof Drop Over Fence",
+  "area": "Carnegie Hill \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Drop",
+   "Fence"
+  ],
+  "photos": [
+   {
+    "file": "sunroof drop over fence b.HEIC",
+    "src": "img/sunroof-drop-over-fence-b.jpg",
+    "thumb": "img/sunroof-drop-over-fence-b-sm.jpg",
+    "lat": 40.784578,
+    "lon": -73.950058,
+    "time": "2025-05-18 17:10"
+   },
+   {
+    "file": "sunroof drop over fence.HEIC",
+    "src": "img/sunroof-drop-over-fence.jpg",
+    "thumb": "img/sunroof-drop-over-fence-sm.jpg",
+    "lat": 40.784511,
+    "lon": -73.950172,
+    "time": "2025-05-18 17:10"
+   }
+  ]
+ },
+ {
+  "id": "sunset-park-bump-over-gap",
+  "name": "Sunset Park Bump Over Gap",
+  "area": "Gowanus \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Gap",
+   "Bump"
+  ],
+  "photos": [
+   {
+    "file": "sunset park bump over gap b.HEIC",
+    "src": "img/sunset-park-bump-over-gap-b.jpg",
+    "thumb": "img/sunset-park-bump-over-gap-b-sm.jpg",
+    "lat": 40.669403,
+    "lon": -73.993767,
+    "time": "2026-09-22 14:06"
+   },
+   {
+    "file": "sunset park bump over gap.HEIC",
+    "src": "img/sunset-park-bump-over-gap.jpg",
+    "thumb": "img/sunset-park-bump-over-gap-sm.jpg",
+    "lat": 40.669464,
+    "lon": -73.993889,
+    "time": "2026-09-22 14:06"
+   }
+  ]
+ },
+ {
+  "id": "tall-fence",
+  "name": "Tall Fence",
+  "area": "Crown Heights \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Fence"
+  ],
+  "photos": [
+   {
+    "file": "tall fence.HEIC",
+    "src": "img/tall-fence.jpg",
+    "thumb": "img/tall-fence-sm.jpg",
+    "lat": 40.674942,
+    "lon": -73.944642,
+    "time": "2023-08-06 17:37"
+   }
+  ]
+ },
+ {
+  "id": "tall-hubba",
+  "name": "Tall Hubba",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Hubba"
+  ],
+  "photos": [
+   {
+    "file": "tall hubba.HEIC",
+    "src": "img/tall-hubba.jpg",
+    "thumb": "img/tall-hubba-sm.jpg",
+    "lat": 40.770236,
+    "lon": -73.982308,
+    "time": "2025-04-18 17:25"
+   }
+  ]
+ },
+ {
+  "id": "tall-square-rail",
+  "name": "Tall Square Rail",
+  "area": "Koreatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "tall square rail b.HEIC",
+    "src": "img/tall-square-rail-b.jpg",
+    "thumb": "img/tall-square-rail-b-sm.jpg",
+    "lat": 40.745694,
+    "lon": -73.982903,
+    "time": "2022-11-05 16:33"
+   },
+   {
+    "file": "tall square rail.HEIC",
+    "src": "img/tall-square-rail.jpg",
+    "thumb": "img/tall-square-rail-sm.jpg",
+    "lat": 40.745717,
+    "lon": -73.982925,
+    "time": "2022-11-05 16:33"
+   }
+  ]
+ },
+ {
+  "id": "the-general-gap-over-rail",
+  "name": "The General Gap Over Rail",
+  "area": "Kips Bay \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail",
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "the general gap over rail b.HEIC",
+    "src": "img/the-general-gap-over-rail-b.jpg",
+    "thumb": "img/the-general-gap-over-rail-b-sm.jpg",
+    "lat": 40.744408,
+    "lon": -73.978814,
+    "time": "2025-07-24 22:45"
+   },
+   {
+    "file": "the general gap over rail.HEIC",
+    "src": "img/the-general-gap-over-rail.jpg",
+    "thumb": "img/the-general-gap-over-rail-sm.jpg",
+    "lat": 40.744583,
+    "lon": -73.978875,
+    "time": "2025-07-24 22:45"
+   }
+  ]
+ },
+ {
+  "id": "time-sq-11",
+  "name": "Times Sq 11",
+  "area": "Koreatown \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "time sq 11 b.HEIC",
+    "src": "img/time-sq-11-b.jpg",
+    "thumb": "img/time-sq-11-b-sm.jpg",
+    "lat": 40.750836,
+    "lon": -73.991989,
+    "time": "2025-04-05 15:28"
+   },
+   {
+    "file": "time sq 11 c.HEIC",
+    "src": "img/time-sq-11-c.jpg",
+    "thumb": "img/time-sq-11-c-sm.jpg",
+    "lat": 40.750625,
+    "lon": -73.992111,
+    "time": "2025-04-05 15:28"
+   },
+   {
+    "file": "time sq 11 d.HEIC",
+    "src": "img/time-sq-11-d.jpg",
+    "thumb": "img/time-sq-11-d-sm.jpg",
+    "lat": 40.750694,
+    "lon": -73.992164,
+    "time": "2025-04-05 15:29"
+   },
+   {
+    "file": "time sq 11.HEIC",
+    "src": "img/time-sq-11.jpg",
+    "thumb": "img/time-sq-11-sm.jpg",
+    "lat": 40.750661,
+    "lon": -73.991928,
+    "time": "2025-04-05 15:28"
+   }
+  ]
+ },
+ {
+  "id": "tribeca-3-up-3-down",
+  "name": "Tribeca 3 Up 3 Down",
+  "area": "Hudson Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "tribeca 3 up 3 down.HEIC",
+    "src": "img/tribeca-3-up-3-down.jpg",
+    "thumb": "img/tribeca-3-up-3-down-sm.jpg",
+    "lat": 40.72535,
+    "lon": -74.011742,
+    "time": "2025-04-15 14:37"
+   }
+  ]
+ },
+ {
+  "id": "tribeca-low-ledge-lines",
+  "name": "Tribeca Low Ledge Lines",
+  "area": "Tribeca \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "tribeca low ledge lines.HEIC",
+    "src": "img/tribeca-low-ledge-lines.jpg",
+    "thumb": "img/tribeca-low-ledge-lines-sm.jpg",
+    "lat": 40.718053,
+    "lon": -74.013008,
+    "time": "2025-04-15 14:33"
+   }
+  ]
+ },
+ {
+  "id": "tribeca-roll-on-grind",
+  "name": "Tribeca Roll On Grind",
+  "area": "Tribeca \u00b7 Manhattan",
+  "notes": "",
+  "tags": [],
+  "photos": [
+   {
+    "file": "tribeca roll on grind.HEIC",
+    "src": "img/tribeca-roll-on-grind.jpg",
+    "thumb": "img/tribeca-roll-on-grind-sm.jpg",
+    "lat": 40.718072,
+    "lon": -74.012642,
+    "time": "2025-04-15 14:32"
+   }
+  ]
+ },
+ {
+  "id": "tribeca-tall-rail",
+  "name": "Tribeca Tall Rail",
+  "area": "Meatpacking \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Rail"
+  ],
+  "photos": [
+   {
+    "file": "tribeca tall rail b.HEIC",
+    "src": "img/tribeca-tall-rail-b.jpg",
+    "thumb": "img/tribeca-tall-rail-b-sm.jpg",
+    "lat": 40.738597,
+    "lon": -74.010369,
+    "time": "2026-01-07 11:00"
+   },
+   {
+    "file": "tribeca tall rail.HEIC",
+    "src": "img/tribeca-tall-rail.jpg",
+    "thumb": "img/tribeca-tall-rail-sm.jpg",
+    "lat": 40.738556,
+    "lon": -74.010375,
+    "time": "2026-01-07 10:59"
+   }
+  ]
+ },
+ {
+  "id": "triple-bank-pad-hill-bomb",
+  "name": "Triple Bank: Pad Hill Bomb",
+  "area": "Cypress Hills \u00b7 Brooklyn",
+  "notes": "",
+  "tags": [
+   "Bank",
+   "Pad"
+  ],
+  "photos": [
+   {
+    "file": "triple bank: pad hill bomb.HEIC",
+    "src": "img/triple-bank-pad-hill-bomb.jpg",
+    "thumb": "img/triple-bank-pad-hill-bomb-sm.jpg",
+    "lat": 40.683675,
+    "lon": -73.890297,
+    "time": "2023-03-06 16:41"
+   }
+  ]
+ },
+ {
+  "id": "tyshawn-subway-gap",
+  "name": "Tyshawn Subway Gap",
+  "area": "Hamilton Heights \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Gap"
+  ],
+  "photos": [
+   {
+    "file": "tyshawn subway gap.JPEG",
+    "src": "img/tyshawn-subway-gap.jpg",
+    "thumb": "img/tyshawn-subway-gap-sm.jpg",
+    "lat": 40.825511,
+    "lon": -73.943764,
+    "time": "2025-11-11 18:44"
+   }
+  ]
+ },
+ {
+  "id": "west-village-pad-grate",
+  "name": "West Village Pad Grate",
+  "area": "West Village \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Pad",
+   "Grate"
+  ],
+  "photos": [
+   {
+    "file": "west village pad grate.HEIC",
+    "src": "img/west-village-pad-grate.jpg",
+    "thumb": "img/west-village-pad-grate-sm.jpg",
+    "lat": 40.733436,
+    "lon": -74.004319,
+    "time": "2025-10-16 10:10"
+   }
+  ]
+ },
+ {
+  "id": "whate-slant-wall-over-stair",
+  "name": "White Slant Wall Over Stair",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Stairs"
+  ],
+  "photos": [
+   {
+    "file": "whate slant wall over stair.HEIC",
+    "src": "img/whate-slant-wall-over-stair.jpg",
+    "thumb": "img/whate-slant-wall-over-stair-sm.jpg",
+    "lat": 40.772278,
+    "lon": -73.985581,
+    "time": "2025-03-22 18:51"
+   }
+  ]
+ },
+ {
+  "id": "wood-ledge-line",
+  "name": "Wood Ledge Line",
+  "area": "Lincoln Square \u00b7 Manhattan",
+  "notes": "",
+  "tags": [
+   "Ledge"
+  ],
+  "photos": [
+   {
+    "file": "wood ledge line b.HEIC",
+    "src": "img/wood-ledge-line-b.jpg",
+    "thumb": "img/wood-ledge-line-b-sm.jpg",
+    "lat": 40.772878,
+    "lon": -73.991814,
+    "time": "2025-04-18 17:40"
+   },
+   {
+    "file": "wood ledge line.HEIC",
+    "src": "img/wood-ledge-line.jpg",
+    "thumb": "img/wood-ledge-line-sm.jpg",
+    "lat": 40.772892,
+    "lon": -73.991014,
+    "time": "2025-04-18 17:39"
+   }
+  ]
+ }
+];
+
+const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+SPOTS.forEach(s => {
+  s.lat = s.photos.reduce((a, p) => a + p.lat, 0) / s.photos.length;
+  s.lon = s.photos.reduce((a, p) => a + p.lon, 0) / s.photos.length;
+  s.tags = s.tags || [];
+  s.boro = (s.area.split(" · ")[1] || "").trim();
+  const times = s.photos.map(p => p.time).filter(Boolean).sort();
+  s.first = times[0] || ""; s.last = times[times.length - 1] || "";
+  s.hay = norm([s.name, s.area, s.notes, s.tags.join(" ")].join(" "));
+});
+
+const state = { q: "", sort: "new", boro: "", types: new Set(), me: null };
+
+function km(a, b) {
+  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const fmtDist = k => { const mi = k * 0.621371; return mi < 0.1 ? `${Math.round(mi * 5280)} ft` : `${mi.toFixed(mi < 10 ? 1 : 0)} mi`; };
+const fmtDate = t => t ? new Date(t.replace(" ", "T")).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+const fmtTime = t => t ? new Date(t.replace(" ", "T")).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "";
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// Boroughs and types come from the data.
+[...new Set(SPOTS.map(s => s.boro).filter(Boolean))].sort().forEach(b => {
+  const o = document.createElement("option"); o.value = b; o.textContent = b; document.getElementById("boro").appendChild(o);
+});
+const TYPE_COUNTS = {};
+SPOTS.forEach(s => s.tags.forEach(t => { TYPE_COUNTS[t] = (TYPE_COUNTS[t] || 0) + 1; }));
+const TYPES = Object.keys(TYPE_COUNTS).sort((a, b) => TYPE_COUNTS[b] - TYPE_COUNTS[a]);
+
+function drawChips() {
+  document.getElementById("chips").innerHTML = TYPES.map(t =>
+    `<button type="button" class="chip" data-t="${esc(t)}" aria-pressed="${state.types.has(t)}">${esc(t)}<span class="n">${TYPE_COUNTS[t]}</span></button>`).join("");
+  document.querySelectorAll("#chips .chip").forEach(c => c.addEventListener("click", () => {
+    const t = c.dataset.t; state.types.has(t) ? state.types.delete(t) : state.types.add(t); draw();
+  }));
+}
+
+function visible() {
+  const words = norm(state.q).split(/\s+/).filter(Boolean);
+  let out = SPOTS.filter(s =>
+    words.every(w => s.hay.includes(w)) &&
+    (!state.boro || s.boro === state.boro) &&
+    (!state.types.size || s.tags.some(t => state.types.has(t))));
+  const by = {
+    new: (a, b) => (b.last || "").localeCompare(a.last || ""),
+    old: (a, b) => (a.first || "9").localeCompare(b.first || "9"),
+    az: (a, b) => a.name.localeCompare(b.name),
+    near: (a, b) => state.me ? km(state.me, a) - km(state.me, b) : 0
+  }[state.sort];
+  return out.slice().sort(by);
+}
+
+function draw() {
+  drawChips();
+  const vis = visible();
+  const grid = document.getElementById("grid");
+  grid.innerHTML = vis.length ? vis.map((s, i) => `
+    <li><button type="button" class="tile" data-id="${s.id}">
+      <span class="ph"><img src="${s.photos[0].thumb}" alt="" loading="${i < 8 ? "eager" : "lazy"}" decoding="async">
+        ${s.photos.length > 1 ? `<span class="count">${s.photos.length} PHOTOS</span>` : ""}
+        ${state.sort === "near" && state.me ? `<span class="dist">${fmtDist(km(state.me, s))}</span>` : ""}
+      </span>
+      <h2>${esc(s.name)}</h2>
+      <p>${esc(s.area || "NYC")}${s.first ? " · " + fmtDate(s.first) : ""}</p>
+    </button></li>`).join("")
+    : `<li class="empty">No spots match. Try another word or clear the filters.</li>`;
+  grid.querySelectorAll(".tile").forEach(b => b.addEventListener("click", () => openSpot(b.dataset.id, true)));
+  const filtered = state.q || state.boro || state.types.size;
+  document.getElementById("count").textContent = filtered ? `${vis.length} of ${SPOTS.length} spots` : `${SPOTS.length} spots`;
+  document.getElementById("clear").hidden = !filtered;
+  document.getElementById("total").textContent = `${SPOTS.length} spots · ${SPOTS.reduce((a, s) => a + s.photos.length, 0)} photos`;
+}
+
+let qTimer;
+document.getElementById("q").addEventListener("input", e => { clearTimeout(qTimer); qTimer = setTimeout(() => { state.q = e.target.value; draw(); }, 150); });
+document.getElementById("boro").addEventListener("change", e => { state.boro = e.target.value; draw(); });
+document.getElementById("clear").addEventListener("click", () => {
+  state.q = ""; state.boro = ""; state.types.clear();
+  document.getElementById("q").value = ""; document.getElementById("boro").value = ""; draw();
+});
+const sortSel = document.getElementById("sort");
+sortSel.addEventListener("change", e => {
+  const v = e.target.value;
+  if (v !== "near") { state.sort = v; draw(); return; }
+  if (state.me) { state.sort = "near"; draw(); return; }
+  const opt = sortSel.querySelector('option[value="near"]');
+  if (!navigator.geolocation) { opt.textContent = "Location unavailable"; sortSel.value = state.sort; return; }
+  opt.textContent = "Locating…";
+  navigator.geolocation.getCurrentPosition(pos => {
+    state.me = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    opt.textContent = "Nearest to me"; state.sort = "near"; draw();
+  }, () => {
+    opt.textContent = "Nearest (turn on location)"; sortSel.value = state.sort;
+  }, { enableHighAccuracy: true, timeout: 10000 });
+});
+
+// ---- Spot viewer ----
+const dlg = document.getElementById("viewer");
+let current = null;
+function openSpot(id, fromUser) {
+  const s = SPOTS.find(x => x.id === id);
+  if (!s) return;
+  current = id;
+  const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
+  dlg.innerHTML = `
+    <div class="viewer">
+      <div class="vbar">
+        <button type="button" id="v-close">Back to gallery</button>
+        <span class="step"><button type="button" id="v-prev" aria-label="Previous spot">←</button><button type="button" id="v-next" aria-label="Next spot">→</button></span>
+      </div>
+      <h3 id="v-title">${esc(s.name)}</h3>
+      <ul class="meta">
+        ${s.area ? `<li>${esc(s.area)}</li>` : ""}
+        ${s.first ? `<li>Shot ${fmtDate(s.first)}</li>` : ""}
+        <li class="coords">${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}</li>
+        ${state.me ? `<li>${fmtDist(km(state.me, s))} away</li>` : ""}
+      </ul>
+      ${s.tags.length ? `<div class="chips">${s.tags.map(t => `<button type="button" class="chip" data-only="${esc(t)}">${esc(t)}</button>`).join("")}</div>` : ""}
+      ${s.notes ? `<p class="notes">${esc(s.notes)}</p>` : ""}
+      <div class="go">
+        <a class="primary" href="./#${s.id}">Show on map</a>
+        <a href="https://maps.apple.com/?ll=${ll}&q=${encodeURIComponent(s.name)}" target="_blank" rel="noopener">Apple Maps</a>
+        <a href="https://www.google.com/maps/search/?api=1&query=${ll}" target="_blank" rel="noopener">Google Maps</a>
+      </div>
+      <div class="vphotos">${s.photos.map((p, j) => `
+        <figure><img src="${p.src}" alt="${esc(s.name)}, photo ${j + 1}" loading="${j < 2 ? "eager" : "lazy"}">
+        <figcaption>${String(j + 1).padStart(2, "0")} / ${String(s.photos.length).padStart(2, "0")}${p.time ? " · " + fmtDate(p.time) + " " + fmtTime(p.time) : ""}</figcaption></figure>`).join("")}
+      </div>
+    </div>`;
+  dlg.querySelector("#v-close").addEventListener("click", closeSpot);
+  const step = d => { const vis = visible(); const i = vis.findIndex(x => x.id === current); const n = vis[(i + d + vis.length) % vis.length]; if (n) openSpot(n.id, true); };
+  dlg.querySelector("#v-prev").addEventListener("click", () => step(-1));
+  dlg.querySelector("#v-next").addEventListener("click", () => step(1));
+  dlg.querySelectorAll("[data-only]").forEach(c => c.addEventListener("click", () => { state.types = new Set([c.dataset.only]); closeSpot(); draw(); }));
+  if (!dlg.open) { try { dlg.showModal(); } catch (e) { dlg.setAttribute("open", ""); } }
+  dlg.scrollTop = 0;
+  if (fromUser) { try { history.replaceState(null, "", "#" + id); } catch (e) {} }
+}
+function closeSpot() {
+  if (dlg.open) dlg.close();
+  current = null;
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+}
+dlg.addEventListener("click", e => { if (e.target === dlg) closeSpot(); });
+dlg.addEventListener("cancel", e => { e.preventDefault(); closeSpot(); });
+document.addEventListener("keydown", e => {
+  if (!dlg.open) return;
+  if (e.key === "ArrowRight") dlg.querySelector("#v-next")?.click();
+  if (e.key === "ArrowLeft") dlg.querySelector("#v-prev")?.click();
+});
+
+draw();
+const h = (location.hash || "").slice(1);
+if (h) openSpot(h, false);
+window.addEventListener("hashchange", () => { const id = location.hash.slice(1); if (id) openSpot(id, false); });
+</script>
+</body>
+</html>

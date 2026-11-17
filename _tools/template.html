@@ -124,6 +124,27 @@ main {
 .card .count { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
 
 .detail { padding: 18px 16px 28px; display: grid; gap: 14px; }
+.nav { display: flex; gap: 8px; width: 100%; }
+.nav a { font: 13px var(--display); text-transform: uppercase; text-decoration: none; padding: 8px 14px; border: 3px solid var(--ink); }
+.nav a[aria-current="page"] { background: var(--ink); color: var(--paper); }
+.nav a:hover { background: var(--hot); color: var(--ink); }
+.sheet-close { display: none; }
+@media (max-width: 820px) {
+  /* On phones the spot opens as a sheet over the map instead of below the list. */
+  .detail {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; max-height: 78vh; overflow-y: auto;
+    background: var(--paper); border-top: 3px solid var(--ink); box-shadow: 0 -10px 30px rgba(0,0,0,.25);
+    transform: translateY(105%); transition: transform .25s ease; padding-top: 8px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
+  .detail.open { transform: none; }
+  .sheet-close {
+    display: flex; justify-content: space-between; align-items: center; position: sticky; top: -8px; z-index: 1;
+    background: var(--paper); margin: 0 -16px; padding: 8px 16px; border-bottom: 1px dashed var(--ink);
+  }
+  .sheet-close span { width: 44px; height: 5px; border-radius: 3px; background: var(--ink-soft); }
+  .sheet-close button { font: 12px var(--display); text-transform: uppercase; padding: 8px 12px; border: 3px solid var(--ink); background: var(--hot); color: var(--ink); cursor: pointer; }
+}
 .detail h2 { margin: 0; font: clamp(28px, 5vw, 42px)/.95 var(--display); text-transform: uppercase; text-wrap: balance; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0; padding: 0; list-style: none; font-size: 12px; }
 .meta li { border: 1.5px solid var(--ink); padding: 2px 8px; text-transform: uppercase; letter-spacing: .05em; }
@@ -150,6 +171,7 @@ footer { padding: 14px clamp(16px, 4vw, 40px); border-top: 3px solid var(--ink);
 <header>
   <h1 class="logo">Itch<span>/</span>NYC Spots</h1>
   <p class="tag">Spots we've hit around the city. Tap a pin for photos and directions.</p>
+  <nav class="nav" aria-label="Pages"><a href="./" aria-current="page">Map</a><a href="gallery.html">Gallery</a></nav>
 </header>
 
 <main>
@@ -388,6 +410,7 @@ function select(id, fromUser) {
   document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
   const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
   document.getElementById("detail").innerHTML = `
+    <div class="sheet-close"><span aria-hidden="true"></span><button type="button" id="sheet-close">Back to map</button></div>
     <h2>${s.name}</h2>
     <ul class="meta">
       ${s.area ? `<li>${s.area}</li>` : ""}
@@ -407,8 +430,15 @@ function select(id, fromUser) {
   document.querySelectorAll("[data-jump]").forEach(c => c.addEventListener("click", () => { state.tags = new Set([c.dataset.jump]); refresh(); }));
   if (fromUser) {
     try { history.replaceState(null, "", "#" + id); } catch (e) { location.hash = id; }
-    if (window.matchMedia("(max-width: 820px)").matches) document.getElementById("detail").scrollIntoView({ block: "start" });
   }
+  const mobile = window.matchMedia("(max-width: 820px)").matches;
+  const det = document.getElementById("detail");
+  det.scrollTop = 0;
+  if (mobile && (fromUser || location.hash)) {
+    det.classList.add("open");
+    window.scrollTo({ top: 0, behavior: fromUser ? "smooth" : "auto" });
+  }
+  document.getElementById("sheet-close").addEventListener("click", () => det.classList.remove("open"));
 }
 
 drawMap();
@@ -416,6 +446,7 @@ drawChips();
 drawList();
 select((location.hash || "").slice(1) || SPOTS[0].id, false);
 window.addEventListener("hashchange", () => select(location.hash.slice(1), false));
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("detail").classList.remove("open"); });
 </script>
 </body>
 </html>

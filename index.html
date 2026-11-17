@@ -124,6 +124,27 @@ main {
 .card .count { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
 
 .detail { padding: 18px 16px 28px; display: grid; gap: 14px; }
+.nav { display: flex; gap: 8px; width: 100%; }
+.nav a { font: 13px var(--display); text-transform: uppercase; text-decoration: none; padding: 8px 14px; border: 3px solid var(--ink); }
+.nav a[aria-current="page"] { background: var(--ink); color: var(--paper); }
+.nav a:hover { background: var(--hot); color: var(--ink); }
+.sheet-close { display: none; }
+@media (max-width: 820px) {
+  /* On phones the spot opens as a sheet over the map instead of below the list. */
+  .detail {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; max-height: 78vh; overflow-y: auto;
+    background: var(--paper); border-top: 3px solid var(--ink); box-shadow: 0 -10px 30px rgba(0,0,0,.25);
+    transform: translateY(105%); transition: transform .25s ease; padding-top: 8px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
+  .detail.open { transform: none; }
+  .sheet-close {
+    display: flex; justify-content: space-between; align-items: center; position: sticky; top: -8px; z-index: 1;
+    background: var(--paper); margin: 0 -16px; padding: 8px 16px; border-bottom: 1px dashed var(--ink);
+  }
+  .sheet-close span { width: 44px; height: 5px; border-radius: 3px; background: var(--ink-soft); }
+  .sheet-close button { font: 12px var(--display); text-transform: uppercase; padding: 8px 12px; border: 3px solid var(--ink); background: var(--hot); color: var(--ink); cursor: pointer; }
+}
 .detail h2 { margin: 0; font: clamp(28px, 5vw, 42px)/.95 var(--display); text-transform: uppercase; text-wrap: balance; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0; padding: 0; list-style: none; font-size: 12px; }
 .meta li { border: 1.5px solid var(--ink); padding: 2px 8px; text-transform: uppercase; letter-spacing: .05em; }
@@ -150,6 +171,7 @@ footer { padding: 14px clamp(16px, 4vw, 40px); border-top: 3px solid var(--ink);
 <header>
   <h1 class="logo">Itch<span>/</span>NYC Spots</h1>
   <p class="tag">Spots we've hit around the city. Tap a pin for photos and directions.</p>
+  <nav class="nav" aria-label="Pages"><a href="./" aria-current="page">Map</a><a href="gallery.html">Gallery</a></nav>
 </header>
 
 <main>
@@ -188,9 +210,11 @@ const SPOTS = [
  {
   "id": "pier-wallride",
   "name": "Pier Wallride",
-  "area": "Hudson River Park \u00b7 Tribeca",
+  "area": "Hudson River Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Wallride"
+  ],
   "photos": [
    {
     "file": "Pier wallride a.HEIC",
@@ -213,9 +237,11 @@ const SPOTS = [
  {
   "id": "pier-3-block",
   "name": "Pier 3 Block",
-  "area": "Hudson River Park \u00b7 Tribeca",
+  "area": "Hudson River Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Block"
+  ],
   "photos": [
    {
     "file": "Pier 3 Block a.HEIC",
@@ -238,7 +264,7 @@ const SPOTS = [
  {
   "id": "u-vents",
   "name": "U Vents",
-  "area": "Broadway \u00b7 Financial District",
+  "area": "Financial District \u00b7 Manhattan",
   "notes": "",
   "tags": [],
   "photos": [
@@ -257,7 +283,9 @@ const SPOTS = [
   "name": "11 Stair",
   "area": "World Trade Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "11 stair b.HEIC",
@@ -282,7 +310,9 @@ const SPOTS = [
   "name": "2 Up 5 Down",
   "area": "Financial District \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "2 up 5 down b.HEIC",
@@ -307,7 +337,10 @@ const SPOTS = [
   "name": "3 Block Over Rail",
   "area": "Lower East Side \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Block"
+  ],
   "photos": [
    {
     "file": "3 block over rail.HEIC",
@@ -324,7 +357,10 @@ const SPOTS = [
   "name": "5 Stair Ledge",
   "area": "Bed-Stuy \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge",
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "5 stair ledge b.HEIC",
@@ -349,7 +385,9 @@ const SPOTS = [
   "name": "Angle iron ride on",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Wallride"
+  ],
   "photos": [
    {
     "file": "Angle iron ride on.HEIC",
@@ -366,7 +404,9 @@ const SPOTS = [
   "name": "Black bump to bar",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "Black bump to bar.HEIC",
@@ -383,7 +423,9 @@ const SPOTS = [
   "name": "Blue ledge",
   "area": "Lower East Side \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "Blue ledge.HEIC",
@@ -425,7 +467,9 @@ const SPOTS = [
   "name": "K bridge curbs",
   "area": "Kosciuszko Bridge \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Curb"
+  ],
   "photos": [
    {
     "file": "K bridge curbs.HEIC",
@@ -442,7 +486,9 @@ const SPOTS = [
   "name": "K bridge diy",
   "area": "Kosciuszko Bridge \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "DIY"
+  ],
   "photos": [
    {
     "file": "K bridge diy b.HEIC",
@@ -467,7 +513,9 @@ const SPOTS = [
   "name": "K bridge hip",
   "area": "Kosciuszko Bridge \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ramp"
+  ],
   "photos": [
    {
     "file": "K bridge hip.HEIC",
@@ -484,7 +532,9 @@ const SPOTS = [
   "name": "K bridge ledges",
   "area": "Kosciuszko Bridge \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "K bridge ledges b.HEIC",
@@ -517,7 +567,9 @@ const SPOTS = [
   "name": "K bridge up barrier",
   "area": "Kosciuszko Bridge \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Barrier"
+  ],
   "photos": [
    {
     "file": "K bridge up barrier b.HEIC",
@@ -542,7 +594,10 @@ const SPOTS = [
   "name": "Man bridge banked ledge",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "Man bridge banked ledge b.HEIC",
@@ -567,7 +622,9 @@ const SPOTS = [
   "name": "Manhattan bridge curved ride on",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Wallride"
+  ],
   "photos": [
    {
     "file": "Manhattan bridge curved ride on.HEIC",
@@ -584,7 +641,10 @@ const SPOTS = [
   "name": "Manhattan Bridge Fence Outrail",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Fence"
+  ],
   "photos": [
    {
     "file": "Manhattan bridge fence outrail b.HEIC",
@@ -609,7 +669,10 @@ const SPOTS = [
   "name": "Rail to ledge",
   "area": "Nolita \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "Rail to ledge.HEIC",
@@ -626,7 +689,10 @@ const SPOTS = [
   "name": "Ramp pad",
   "area": "Navy Yard \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad",
+   "Ramp"
+  ],
   "photos": [
    {
     "file": "Ramp pad.HEIC",
@@ -643,7 +709,9 @@ const SPOTS = [
   "name": "Red grates",
   "area": "Nolita \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Grate"
+  ],
   "photos": [
    {
     "file": "Red grates.HEIC",
@@ -668,7 +736,9 @@ const SPOTS = [
   "name": "Red rail",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "Red rail.HEIC",
@@ -685,7 +755,10 @@ const SPOTS = [
   "name": "Soho gap curb cut",
   "area": "SoHo \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Curb"
+  ],
   "photos": [
    {
     "file": "Soho gap curb cut b.HEIC",
@@ -710,7 +783,9 @@ const SPOTS = [
   "name": "Steep rail",
   "area": "Woodside \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "Steep rail b.HEIC",
@@ -735,7 +810,9 @@ const SPOTS = [
   "name": "Thin ledge",
   "area": "Woodside \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "Thin ledge b.HEIC",
@@ -760,7 +837,9 @@ const SPOTS = [
   "name": "Ukraine ledges",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "Ukraine ledges a.HEIC",
@@ -793,7 +872,9 @@ const SPOTS = [
   "name": "Up barrier",
   "area": "Lower East Side \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Barrier"
+  ],
   "photos": [
    {
     "file": "Up barrier.HEIC",
@@ -810,7 +891,9 @@ const SPOTS = [
   "name": "Wall st outledge",
   "area": "Financial District \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "Wall st outledge b.HEIC",
@@ -852,7 +935,9 @@ const SPOTS = [
   "name": "Barclays Ledges",
   "area": "Prospect Heights \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "barclays ledges b.HEIC",
@@ -877,7 +962,9 @@ const SPOTS = [
   "name": "Battery Double Set",
   "area": "Battery Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "battery double set.HEIC",
@@ -894,7 +981,10 @@ const SPOTS = [
   "name": "Battery Gap Into Bank",
   "area": "Battery Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "battery gap into bank b.HEIC",
@@ -936,7 +1026,9 @@ const SPOTS = [
   "name": "BK Bridge C Barrier",
   "area": "Seaport \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Barrier"
+  ],
   "photos": [
    {
     "file": "bk bridge c barrier c.HEIC",
@@ -953,7 +1045,9 @@ const SPOTS = [
   "name": "BK Bridge Curb To Street",
   "area": "Civic Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Curb"
+  ],
   "photos": [
    {
     "file": "bk bridge curb to street.HEIC",
@@ -970,7 +1064,9 @@ const SPOTS = [
   "name": "BK Bridge Curved Barrier",
   "area": "Seaport \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Barrier"
+  ],
   "photos": [
    {
     "file": "bk bridge curved barrier b.HEIC",
@@ -995,7 +1091,9 @@ const SPOTS = [
   "name": "BK Bump Over Flat",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "bk bump over flat b.HEIC",
@@ -1020,7 +1118,9 @@ const SPOTS = [
   "name": "Black Ledge",
   "area": "Vinegar Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "black ledge.HEIC",
@@ -1037,7 +1137,9 @@ const SPOTS = [
   "name": "Black Ledges Battery Park",
   "area": "Battery Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "black ledges battery park.HEIC",
@@ -1071,7 +1173,10 @@ const SPOTS = [
   "name": "Blue Bank Wall Rail",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "blue bank wall rail.HEIC",
@@ -1088,7 +1193,10 @@ const SPOTS = [
   "name": "Blue Grate To Pad/Window Sill",
   "area": "Bed-Stuy \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad",
+   "Grate"
+  ],
   "photos": [
    {
     "file": "blue grate to pad:window sill.HEIC",
@@ -1105,7 +1213,9 @@ const SPOTS = [
   "name": "Brooklyn Banks",
   "area": "Civic Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "brooklyn banks b.HEIC",
@@ -1130,7 +1240,10 @@ const SPOTS = [
   "name": "Bump Over Fence",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump",
+   "Fence"
+  ],
   "photos": [
    {
     "file": "bump over fence.HEIC",
@@ -1147,7 +1260,9 @@ const SPOTS = [
   "name": "Bump Over Flat",
   "area": "Alphabet City \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "bump over flat.JPEG",
@@ -1164,7 +1279,10 @@ const SPOTS = [
   "name": "Bump To Barrier",
   "area": "Civic Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump",
+   "Barrier"
+  ],
   "photos": [
    {
     "file": "bump to barrier b.HEIC",
@@ -1189,7 +1307,10 @@ const SPOTS = [
   "name": "Bump To Rail",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Bump"
+  ],
   "photos": [
    {
     "file": "bump to rail.HEIC",
@@ -1206,7 +1327,9 @@ const SPOTS = [
   "name": "Bump To Slant Wall",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "bump to slant wall.HEIC",
@@ -1223,7 +1346,10 @@ const SPOTS = [
   "name": "Bump To Trailer",
   "area": "South Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Bump"
+  ],
   "photos": [
    {
     "file": "bump to trailer.HEIC",
@@ -1240,7 +1366,9 @@ const SPOTS = [
   "name": "Bush Grates",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Grate"
+  ],
   "photos": [
    {
     "file": "bush grates b.HEIC",
@@ -1265,7 +1393,9 @@ const SPOTS = [
   "name": "Circle 3 Blocks",
   "area": "Boerum Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Block"
+  ],
   "photos": [
    {
     "file": "circle 3 blocks.HEIC",
@@ -1282,7 +1412,9 @@ const SPOTS = [
   "name": "Circle Pads",
   "area": "Clinton Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad"
+  ],
   "photos": [
    {
     "file": "circle pads b.HEIC",
@@ -1315,7 +1447,9 @@ const SPOTS = [
   "name": "City Hall Rail",
   "area": "Civic Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "city hall rail.HEIC",
@@ -1332,7 +1466,9 @@ const SPOTS = [
   "name": "Columbus Park Double Set",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "columbus park double set.HEIC",
@@ -1366,7 +1502,9 @@ const SPOTS = [
   "name": "Columbus Playground Red Upledge",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "columbus playground red upledge.HEIC",
@@ -1383,7 +1521,10 @@ const SPOTS = [
   "name": "Cooper Bump To Ledge",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge",
+   "Bump"
+  ],
   "photos": [
    {
     "file": "cooper bump to ledge.HEIC",
@@ -1400,7 +1541,9 @@ const SPOTS = [
   "name": "Courthouse Ledges",
   "area": "Civic Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "courthouse ledges b.HEIC",
@@ -1442,7 +1585,9 @@ const SPOTS = [
   "name": "Ctown 5 Flat 5 Double Set",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "ctown 5 flat 5 double set.HEIC",
@@ -1459,7 +1604,9 @@ const SPOTS = [
   "name": "Ctown Bump To Bar",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "ctown bump to bar.HEIC",
@@ -1476,7 +1623,9 @@ const SPOTS = [
   "name": "Ctown Cobble Banks",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "ctown cobble banks b.HEIC",
@@ -1501,7 +1650,9 @@ const SPOTS = [
   "name": "Ctown Downhill Curbs",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Curb"
+  ],
   "photos": [
    {
     "file": "ctown downhill curbs.HEIC",
@@ -1518,7 +1669,9 @@ const SPOTS = [
   "name": "Ctown Grate To Window Sill",
   "area": "Nolita \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Grate"
+  ],
   "photos": [
    {
     "file": "ctown grate to window sill.HEIC",
@@ -1535,7 +1688,9 @@ const SPOTS = [
   "name": "Ctown Over Rail",
   "area": "Nolita \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "ctown over rail.HEIC",
@@ -1552,7 +1707,9 @@ const SPOTS = [
   "name": "Ctown Pad",
   "area": "Two Bridges \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad"
+  ],
   "photos": [
    {
     "file": "ctown pad b.HEIC",
@@ -1594,7 +1751,9 @@ const SPOTS = [
   "name": "Ctown Up And Flat Ledge",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "ctown up and flat ledge.HEIC",
@@ -1611,7 +1770,9 @@ const SPOTS = [
   "name": "Ctown Wallie Grind",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Wallie"
+  ],
   "photos": [
    {
     "file": "ctown wallie grind.HEIC",
@@ -1628,7 +1789,9 @@ const SPOTS = [
   "name": "Curb Cut",
   "area": "Clinton Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Curb"
+  ],
   "photos": [
    {
     "file": "curb cut.HEIC",
@@ -1645,7 +1808,10 @@ const SPOTS = [
   "name": "Curbcut To Rail",
   "area": "Civic Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Curb"
+  ],
   "photos": [
    {
     "file": "curbcut to rail.HEIC",
@@ -1679,7 +1845,9 @@ const SPOTS = [
   "name": "Death Rail",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "death rail b.HEIC",
@@ -1729,7 +1897,9 @@ const SPOTS = [
   "name": "Dill Pad",
   "area": "Civic Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad"
+  ],
   "photos": [
    {
     "file": "dill pad.HEIC",
@@ -1746,7 +1916,9 @@ const SPOTS = [
   "name": "Dimes Square Wave",
   "area": "Two Bridges \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ramp"
+  ],
   "photos": [
    {
     "file": "dime square wave.HEIC",
@@ -1763,7 +1935,9 @@ const SPOTS = [
   "name": "Double Kink Bushwick",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "double kink bushwick.HEIC",
@@ -1780,7 +1954,9 @@ const SPOTS = [
   "name": "Drop Grind",
   "area": "Clinton Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Drop"
+  ],
   "photos": [
    {
     "file": "drop grind.HEIC",
@@ -1797,7 +1973,10 @@ const SPOTS = [
   "name": "Drop In Gap",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Drop"
+  ],
   "photos": [
    {
     "file": "drop in gap.HEIC",
@@ -1814,7 +1993,9 @@ const SPOTS = [
   "name": "DUMBO Brick Banks",
   "area": "DUMBO \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "dumbo brick banks b.HEIC",
@@ -1839,7 +2020,10 @@ const SPOTS = [
   "name": "DUMBO Bump To Ledge",
   "area": "DUMBO \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge",
+   "Bump"
+  ],
   "photos": [
    {
     "file": "dumbo bump to ledge.JPEG",
@@ -1856,7 +2040,9 @@ const SPOTS = [
   "name": "DUMBO Double Set",
   "area": "DUMBO \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "dumbo double set b.HEIC",
@@ -1881,7 +2067,9 @@ const SPOTS = [
   "name": "East Village Inside Ledge",
   "area": "East Village \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "east village inside ledge.HEIC",
@@ -1898,7 +2086,9 @@ const SPOTS = [
   "name": "East Village Stair Grind",
   "area": "East Village \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "east village stair grind.HEIC",
@@ -1915,7 +2105,9 @@ const SPOTS = [
   "name": "Fishgap",
   "area": "Navy Yard \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap"
+  ],
   "photos": [
    {
     "file": "fishgap b.HEIC",
@@ -1956,7 +2148,9 @@ const SPOTS = [
   "name": "Fort Greene Cobble Banks",
   "area": "Fort Greene \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "fort green cobble banks.HEIC",
@@ -1973,7 +2167,9 @@ const SPOTS = [
   "name": "Fort Greene Pad",
   "area": "Fort Greene \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad"
+  ],
   "photos": [
    {
     "file": "fort green pad.HEIC",
@@ -1990,7 +2186,9 @@ const SPOTS = [
   "name": "Fort Greene Philly Step",
   "area": "Clinton Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Philly Step"
+  ],
   "photos": [
    {
     "file": "fort green philly step.HEIC",
@@ -2024,7 +2222,9 @@ const SPOTS = [
   "name": "Freeway Outrail",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "freeway outrail b.HEIC",
@@ -2049,7 +2249,9 @@ const SPOTS = [
   "name": "Freeway Up Barrier",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Barrier"
+  ],
   "photos": [
    {
     "file": "freeway up barrier.HEIC",
@@ -2066,7 +2268,10 @@ const SPOTS = [
   "name": "Gap To Stair Grind Fort Greene",
   "area": "DUMBO \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "gap to stair grind fort green.HEIC",
@@ -2083,7 +2288,10 @@ const SPOTS = [
   "name": "Gap To Tall Ledge",
   "area": "Boerum Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge",
+   "Gap"
+  ],
   "photos": [
    {
     "file": "gap to tall ledge.HEIC",
@@ -2100,7 +2308,9 @@ const SPOTS = [
   "name": "Grate + Bench",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Grate"
+  ],
   "photos": [
    {
     "file": "grate + bench.HEIC",
@@ -2117,7 +2327,10 @@ const SPOTS = [
   "name": "Grate Gap",
   "area": "Ridgewood \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Grate"
+  ],
   "photos": [
    {
     "file": "grate gap.HEIC",
@@ -2134,7 +2347,10 @@ const SPOTS = [
   "name": "Grate To Stair",
   "area": "Ridgewood \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs",
+   "Grate"
+  ],
   "photos": [
    {
     "file": "grate to stair.HEIC",
@@ -2151,7 +2367,10 @@ const SPOTS = [
   "name": "Grate Wallie",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Grate",
+   "Wallie"
+  ],
   "photos": [
    {
     "file": "grate wallie.HEIC",
@@ -2193,7 +2412,9 @@ const SPOTS = [
   "name": "Hospital Banks",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "hospital banks.HEIC",
@@ -2210,7 +2431,10 @@ const SPOTS = [
   "name": "Ledge Into Bank",
   "area": "Battery Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "ledge into bank b.HEIC",
@@ -2235,7 +2459,9 @@ const SPOTS = [
   "name": "LES Hubba",
   "area": "Two Bridges \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Hubba"
+  ],
   "photos": [
    {
     "file": "les hubba.HEIC",
@@ -2252,7 +2478,9 @@ const SPOTS = [
   "name": "Loading Dock Gap To Grind",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap"
+  ],
   "photos": [
    {
     "file": "loading dock gap to grind.HEIC",
@@ -2277,7 +2505,9 @@ const SPOTS = [
   "name": "Long Black Ledges",
   "area": "Financial District \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "long black ledges.HEIC",
@@ -2294,7 +2524,9 @@ const SPOTS = [
   "name": "Long Step Grind",
   "area": "Two Bridges \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "long step grind.HEIC",
@@ -2311,7 +2543,9 @@ const SPOTS = [
   "name": "Lower Barricade",
   "area": "Financial District \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Barrier"
+  ],
   "photos": [
    {
     "file": "lower barricade.HEIC",
@@ -2328,7 +2562,9 @@ const SPOTS = [
   "name": "Lower C Pads",
   "area": "Seaport \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad"
+  ],
   "photos": [
    {
     "file": "lower c pads.HEIC",
@@ -2345,7 +2581,10 @@ const SPOTS = [
   "name": "Lower Drop Gap",
   "area": "Financial District \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Drop"
+  ],
   "photos": [
    {
     "file": "lower drop gap.HEIC",
@@ -2362,7 +2601,9 @@ const SPOTS = [
   "name": "Lower Gap To Grind",
   "area": "Two Bridges \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap"
+  ],
   "photos": [
    {
     "file": "lower gap to grind b.HEIC",
@@ -2387,7 +2628,9 @@ const SPOTS = [
   "name": "Lower Granite Ledge Line",
   "area": "Seaport \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "lower granite ledge line.HEIC",
@@ -2429,7 +2672,9 @@ const SPOTS = [
   "name": "Lower Rock Banks",
   "area": "Seaport \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "lower rock banks b.HEIC",
@@ -2470,7 +2715,10 @@ const SPOTS = [
   "name": "Lower Steps To Grate",
   "area": "Battery Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs",
+   "Grate"
+  ],
   "photos": [
    {
     "file": "lower steps to grate.HEIC",
@@ -2495,7 +2743,9 @@ const SPOTS = [
   "name": "Man Bridge 15 Stair",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "man bridge 15 stair.HEIC",
@@ -2512,7 +2762,9 @@ const SPOTS = [
   "name": "Man Bridge Flat Gap",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap"
+  ],
   "photos": [
    {
     "file": "man bridge flat gap.HEIC",
@@ -2529,7 +2781,9 @@ const SPOTS = [
   "name": "Man Bridge Pad To Grind",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad"
+  ],
   "photos": [
    {
     "file": "man bridge pad to grind.HEIC",
@@ -2546,7 +2800,9 @@ const SPOTS = [
   "name": "Maria Hernandez Pole Drop",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Drop"
+  ],
   "photos": [
    {
     "file": "maria hernandez pole drop.HEIC",
@@ -2563,7 +2819,9 @@ const SPOTS = [
   "name": "McCarren Pool Square Rail",
   "area": "Greenpoint \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "mccarren pool square rail b.HEIC",
@@ -2588,7 +2846,9 @@ const SPOTS = [
   "name": "Median Curb",
   "area": "Clinton Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Curb"
+  ],
   "photos": [
    {
     "file": "median curb b.HEIC",
@@ -2613,7 +2873,10 @@ const SPOTS = [
   "name": "Navy Yard Blue Steps Outrail",
   "area": "Navy Yard \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "navy yard blue steps outrail b.HEIC",
@@ -2679,7 +2942,9 @@ const SPOTS = [
   "name": "NYPD Pad",
   "area": "Civic Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad"
+  ],
   "photos": [
    {
     "file": "nypd pad b.HEIC",
@@ -2704,7 +2969,9 @@ const SPOTS = [
   "name": "NYU Rail",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "nyu rail.HEIC",
@@ -2721,7 +2988,9 @@ const SPOTS = [
   "name": "Philly Step To Step",
   "area": "Chinatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Philly Step"
+  ],
   "photos": [
    {
     "file": "philly step to step.HEIC",
@@ -2738,7 +3007,9 @@ const SPOTS = [
   "name": "Philly Step",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Philly Step"
+  ],
   "photos": [
    {
     "file": "philly step.HEIC",
@@ -2755,7 +3026,10 @@ const SPOTS = [
   "name": "Popeyes Bump To Rail",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Bump"
+  ],
   "photos": [
    {
     "file": "popeyes bump to rail.HEIC",
@@ -2772,7 +3046,9 @@ const SPOTS = [
   "name": "Red Bump To Bar",
   "area": "Clinton Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "red bump to bar.HEIC",
@@ -2797,7 +3073,10 @@ const SPOTS = [
   "name": "Red Hook Ramp Pad",
   "area": "Columbia Waterfront \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad",
+   "Ramp"
+  ],
   "photos": [
    {
     "file": "redhook ramp pad.HEIC",
@@ -2814,7 +3093,9 @@ const SPOTS = [
   "name": "Seaport C Ledges",
   "area": "Financial District \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "seaport c ledges b.HEIC",
@@ -2855,7 +3136,9 @@ const SPOTS = [
   "name": "Seaport Ledges",
   "area": "Seaport \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "seaport ledges b.HEIC",
@@ -2897,7 +3180,9 @@ const SPOTS = [
   "name": "Seaport Wallrail",
   "area": "Two Bridges \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "seaport wallrail b.HEIC",
@@ -2922,7 +3207,9 @@ const SPOTS = [
   "name": "Sela V Rail",
   "area": "Navy Yard \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "sela v rail.HEIC",
@@ -2939,7 +3226,10 @@ const SPOTS = [
   "name": "Sela V Drop Over Gap",
   "area": "Navy Yard \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Drop"
+  ],
   "photos": [
    {
     "file": "selav drop over gap b.HEIC",
@@ -2964,7 +3254,9 @@ const SPOTS = [
   "name": "Shotgun Subway Rail",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "shotgun subway rail b.HEIC",
@@ -2989,7 +3281,10 @@ const SPOTS = [
   "name": "Sidewalk Bump To Barrier",
   "area": "South Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump",
+   "Barrier"
+  ],
   "photos": [
    {
     "file": "sidewalk bump to barrier.HEIC",
@@ -3006,7 +3301,9 @@ const SPOTS = [
   "name": "Slanted Flat Gap",
   "area": "Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap"
+  ],
   "photos": [
    {
     "file": "slanted flat gap.HEIC",
@@ -3023,7 +3320,9 @@ const SPOTS = [
   "name": "Soho Flat Gap",
   "area": "NoHo \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap"
+  ],
   "photos": [
    {
     "file": "soho flat gap b.HEIC",
@@ -3048,7 +3347,10 @@ const SPOTS = [
   "name": "Soho Gap To Curb",
   "area": "SoHo \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Curb"
+  ],
   "photos": [
    {
     "file": "soho gap to curb.HEIC",
@@ -3082,7 +3384,10 @@ const SPOTS = [
   "name": "Stair Ledge",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge",
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "stair ledge.HEIC",
@@ -3099,7 +3404,10 @@ const SPOTS = [
   "name": "Stair/Rail Line",
   "area": "South Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "stair:rail line.HEIC",
@@ -3116,7 +3424,9 @@ const SPOTS = [
   "name": "Subway Rail",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "subway rail.HEIC",
@@ -3150,7 +3460,9 @@ const SPOTS = [
   "name": "Tall Rail",
   "area": "Nolita \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "tall rail.HEIC",
@@ -3167,7 +3479,9 @@ const SPOTS = [
   "name": "Thread Ledge",
   "area": "South Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "thread ledge.HEIC",
@@ -3184,7 +3498,9 @@ const SPOTS = [
   "name": "Tillary Cledge",
   "area": "Downtown Brooklyn \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "tillary cledge.HEIC",
@@ -3201,7 +3517,9 @@ const SPOTS = [
   "name": "Traffic Wallie",
   "area": "Lower East Side \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Wallie"
+  ],
   "photos": [
    {
     "file": "traffic wallie.HEIC",
@@ -3218,7 +3536,9 @@ const SPOTS = [
   "name": "Trash Drop",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Drop"
+  ],
   "photos": [
    {
     "file": "trash drop.HEIC",
@@ -3235,7 +3555,9 @@ const SPOTS = [
   "name": "Up Ledge",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "up ledge.HEIC",
@@ -3252,7 +3574,9 @@ const SPOTS = [
   "name": "Uphill Bump Over Bar",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "uphill bump over bar.HEIC",
@@ -3269,7 +3593,9 @@ const SPOTS = [
   "name": "Wall Grind Into Bank",
   "area": "Bushwick \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "wall grind into bank.HEIC",
@@ -3286,7 +3612,9 @@ const SPOTS = [
   "name": "Wall Ledge Navy Yard",
   "area": "Navy Yard \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "wall ledge navy yard.HEIC",
@@ -3311,7 +3639,9 @@ const SPOTS = [
   "name": "Wallie Grind",
   "area": "Fort Greene \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Wallie"
+  ],
   "photos": [
    {
     "file": "wallie grind.HEIC",
@@ -3328,7 +3658,10 @@ const SPOTS = [
   "name": "Washington Monument Stair Curbs",
   "area": "Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs",
+   "Curb"
+  ],
   "photos": [
    {
     "file": "washington monument stair curbs.HEIC",
@@ -3362,7 +3695,9 @@ const SPOTS = [
   "name": "Williamsburg Big Rails",
   "area": "South Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "williamsburg big rails b.HEIC",
@@ -3412,7 +3747,9 @@ const SPOTS = [
   "name": "Williamsburg Double Kink",
   "area": "South Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "williamsburg double kink b.HEIC",
@@ -3437,7 +3774,10 @@ const SPOTS = [
   "name": "World Trade Andrew Wilson Gap To Curb",
   "area": "World Trade Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Curb"
+  ],
   "photos": [
    {
     "file": "world trade andrew wilson gap to curb.HEIC",
@@ -3454,7 +3794,9 @@ const SPOTS = [
   "name": "World Trade Ledges",
   "area": "World Trade Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "world trade ledges b.HEIC",
@@ -3479,7 +3821,9 @@ const SPOTS = [
   "name": "World Trade Rail",
   "area": "World Trade Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "world trade rail.HEIC",
@@ -3496,7 +3840,9 @@ const SPOTS = [
   "name": "YMCA 3 Block",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Block"
+  ],
   "photos": [
    {
     "file": "ymca 3 block.HEIC",
@@ -3513,7 +3859,9 @@ const SPOTS = [
   "name": "YMCA Hubba",
   "area": "East Williamsburg \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Hubba"
+  ],
   "photos": [
    {
     "file": "ymca hubba.HEIC",
@@ -3530,7 +3878,9 @@ const SPOTS = [
   "name": "Zuccotti Outledge",
   "area": "World Trade Center \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "zucotti outledge.HEIC",
@@ -3547,7 +3897,9 @@ const SPOTS = [
   "name": "13 Rail",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "13 rail a.HEIC",
@@ -3572,7 +3924,9 @@ const SPOTS = [
   "name": "5 To 3 Stair",
   "area": "Kips Bay \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "5 to 3 stair b.HEIC",
@@ -3589,7 +3943,9 @@ const SPOTS = [
   "name": "96 St C Ledge",
   "area": "Carnegie Hill \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "96st c ledge.HEIC",
@@ -3606,7 +3962,9 @@ const SPOTS = [
   "name": "Flushing drop grind",
   "area": "Flushing \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Drop"
+  ],
   "photos": [
    {
     "file": "Flushing drop grind.HEIC",
@@ -3657,7 +4015,9 @@ const SPOTS = [
   "name": "Atlantic Ave Hubba",
   "area": "Prospect Heights \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Hubba"
+  ],
   "photos": [
    {
     "file": "Atlantic ave hubba.HEIC",
@@ -3674,7 +4034,10 @@ const SPOTS = [
   "name": "Crown Heights Bump To Rail",
   "area": "Bed-Stuy \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Bump"
+  ],
   "photos": [
    {
     "file": "Crown heights Bump to rail.HEIC",
@@ -3691,7 +4054,9 @@ const SPOTS = [
   "name": "LaGuardia Brick Banks",
   "area": "Astoria \u00b7 Queens",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "Laguardia Brick Banks.HEIC",
@@ -3716,7 +4081,10 @@ const SPOTS = [
   "name": "Bank Gaps",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "bank gaps.HEIC",
@@ -3733,7 +4101,10 @@ const SPOTS = [
   "name": "Battery Wood Rail To Rock Bank",
   "area": "Battery Park City \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "battery wood rail to rock bank a.HEIC",
@@ -3766,7 +4137,9 @@ const SPOTS = [
   "name": "Black Ferrari Ledges",
   "area": "Midtown East \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "black ferrari ledges b.HEIC",
@@ -3791,7 +4164,9 @@ const SPOTS = [
   "name": "Black Up Ledge",
   "area": "Times Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "black up ledge.HEIC",
@@ -3808,7 +4183,9 @@ const SPOTS = [
   "name": "Blocked C Ledge",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "blocked c ledge.HEIC",
@@ -3866,7 +4243,9 @@ const SPOTS = [
   "name": "Bronx Bump To Box",
   "area": "Concourse \u00b7 Bronx",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "bronx bump to box b.HEIC",
@@ -3891,7 +4270,9 @@ const SPOTS = [
   "name": "Bronx Tail Drop",
   "area": "Concourse \u00b7 Bronx",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Drop"
+  ],
   "photos": [
    {
     "file": "bronx tail drop.HEIC",
@@ -3908,7 +4289,9 @@ const SPOTS = [
   "name": "Bronx Zoo Shotgun Rail",
   "area": "West Farms \u00b7 Bronx",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "bronx zoo shotgun rail.HEIC",
@@ -3925,7 +4308,9 @@ const SPOTS = [
   "name": "Bryant Double Set",
   "area": "Midtown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "bryant double set.HEIC",
@@ -3942,7 +4327,10 @@ const SPOTS = [
   "name": "Bump Over Bar To Grate",
   "area": "Crown Heights \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump",
+   "Grate"
+  ],
   "photos": [
    {
     "file": "bump over bar to grate a.HEIC",
@@ -3967,7 +4355,9 @@ const SPOTS = [
   "name": "Bump To Bump Line",
   "area": "Cypress Hills \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "bump to bump line b.HEIC",
@@ -4058,7 +4448,9 @@ const SPOTS = [
   "name": "Central Park C Ledge",
   "area": "Central Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "central park c ledge.HEIC",
@@ -4075,7 +4467,9 @@ const SPOTS = [
   "name": "Central Park Square Rail Shootout",
   "area": "Central Park \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "central park square rail shootout.HEIC",
@@ -4100,7 +4494,9 @@ const SPOTS = [
   "name": "Coney Island Shootout Rail",
   "area": "Coney Island \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "coney island shootout rail b.HEIC",
@@ -4125,7 +4521,9 @@ const SPOTS = [
   "name": "Coney Island Wall Rail",
   "area": "Coney Island \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "coney island wall rail a.HEIC",
@@ -4150,7 +4548,9 @@ const SPOTS = [
   "name": "Crown Heights Taildrop",
   "area": "Prospect Lefferts Gardens \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Drop"
+  ],
   "photos": [
    {
     "file": "crown heights taildrop.HEIC",
@@ -4167,7 +4567,9 @@ const SPOTS = [
   "name": "Diamond Metal Ledge",
   "area": "Murray Hill \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "diamond metal ledge.HEIC",
@@ -4184,7 +4586,9 @@ const SPOTS = [
   "name": "Doorway To Stair",
   "area": "Carnegie Hill \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "doorway to stair a.HEIC",
@@ -4209,7 +4613,9 @@ const SPOTS = [
   "name": "Down And Flat Shootout Rail",
   "area": "Brownsville \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "down and flat shootout rail.HEIC",
@@ -4226,7 +4632,9 @@ const SPOTS = [
   "name": "Flatbush Brick Bank",
   "area": "Crown Heights \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "flatbush brick bank a.HEIC",
@@ -4251,7 +4659,9 @@ const SPOTS = [
   "name": "Flatbush Roll In",
   "area": "Prospect Lefferts Gardens \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ramp"
+  ],
   "photos": [
    {
     "file": "flatbush roll in b.HEIC",
@@ -4276,7 +4686,9 @@ const SPOTS = [
   "name": "Flatbush White Banks",
   "area": "Brownsville \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank"
+  ],
   "photos": [
    {
     "file": "flatbush white banks b.HEIC",
@@ -4301,7 +4713,9 @@ const SPOTS = [
   "name": "Funky Kickers Tribeca",
   "area": "Meatpacking \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ramp"
+  ],
   "photos": [
    {
     "file": "funky kickers tribeca.HEIC",
@@ -4318,7 +4732,10 @@ const SPOTS = [
   "name": "Gap To Grate Cobble Hill",
   "area": "Gowanus \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Grate"
+  ],
   "photos": [
    {
     "file": "gap to grate cobble hill b.HEIC",
@@ -4343,7 +4760,10 @@ const SPOTS = [
   "name": "Gap To Square Rail",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Gap"
+  ],
   "photos": [
    {
     "file": "gap to square rail a.HEIC",
@@ -4368,7 +4788,10 @@ const SPOTS = [
   "name": "Gap To Stair",
   "area": "Flatiron \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "gap to stair b.HEIC",
@@ -4393,7 +4816,9 @@ const SPOTS = [
   "name": "Gate Outrail",
   "area": "Murray Hill \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "gate outrail b.HEIC",
@@ -4418,7 +4843,10 @@ const SPOTS = [
   "name": "Harlem Bump Over Fence",
   "area": "Washington Heights \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump",
+   "Fence"
+  ],
   "photos": [
    {
     "file": "harlem bump over fence a.HEIC",
@@ -4459,7 +4887,9 @@ const SPOTS = [
   "name": "Hudson Philly Step",
   "area": "West Village \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Philly Step"
+  ],
   "photos": [
    {
     "file": "hudson philly step.HEIC",
@@ -4501,7 +4931,9 @@ const SPOTS = [
   "name": "Kicker Over Bike Lane",
   "area": "Prospect Lefferts Gardens \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ramp"
+  ],
   "photos": [
    {
     "file": "kicker over bike lane.HEIC",
@@ -4518,7 +4950,9 @@ const SPOTS = [
   "name": "Low Ledges",
   "area": "Kips Bay \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "low ledges a.HEIC",
@@ -4552,7 +4986,10 @@ const SPOTS = [
   "name": "Midtown Bank Ledge",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "midtown bank ledge.HEIC",
@@ -4569,7 +5006,9 @@ const SPOTS = [
   "name": "Midtown Black Ledges",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "midtown black ledges.HEIC",
@@ -4586,7 +5025,9 @@ const SPOTS = [
   "name": "Midtown Fountain Pad",
   "area": "Koreatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad"
+  ],
   "photos": [
    {
     "file": "midtown fountain pad.HEIC",
@@ -4603,7 +5044,9 @@ const SPOTS = [
   "name": "Midtown Shotgun Rail",
   "area": "Midtown East \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "midtown shotgun rail.HEIC",
@@ -4620,7 +5063,9 @@ const SPOTS = [
   "name": "Midtown Wall Rail",
   "area": "Upper East Side \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "midtwon wall rail a.HEIC",
@@ -4637,7 +5082,9 @@ const SPOTS = [
   "name": "Night 6 Rail",
   "area": "Times Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "night 6 rail.HEIC",
@@ -4679,7 +5126,10 @@ const SPOTS = [
   "name": "Over Rail Into Bank Through Doorway",
   "area": "Concourse \u00b7 Bronx",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "over rail into bank through doorway a.HEIC",
@@ -4704,7 +5154,9 @@ const SPOTS = [
   "name": "Park Slope 10 Rail",
   "area": "Park Slope \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "park slope 10 rail b.HEIC",
@@ -4737,7 +5189,9 @@ const SPOTS = [
   "name": "Park Slope Church Round Ledges",
   "area": "Park Slope \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "park slope church round ledges.HEIC",
@@ -4754,7 +5208,9 @@ const SPOTS = [
   "name": "Park Slope Round Ledges",
   "area": "Park Slope \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "parkslope round ledges b.HEIC",
@@ -4804,7 +5260,9 @@ const SPOTS = [
   "name": "Roll On Rail Splat",
   "area": "Midtown East \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "roll on rail splat.HEIC",
@@ -4821,7 +5279,9 @@ const SPOTS = [
   "name": "Seagrams Outledge",
   "area": "Midtown East \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "seagrams outledge a.HEIC",
@@ -4854,7 +5314,9 @@ const SPOTS = [
   "name": "Sidewalk Bump Through Tree",
   "area": "Prospect Heights \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "sidewalk bump through tree.HEIC",
@@ -4871,7 +5333,9 @@ const SPOTS = [
   "name": "Small Bump Over Flat",
   "area": "Crown Heights \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "small bump over flat.HEIC",
@@ -4888,7 +5352,10 @@ const SPOTS = [
   "name": "Station Over Rail Into Bank",
   "area": "Midtown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Bank"
+  ],
   "photos": [
    {
     "file": "station over rail into bank a.HEIC",
@@ -4913,7 +5380,9 @@ const SPOTS = [
   "name": "Steep Apartment Rail",
   "area": "Ocean Hill \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "steep apartment rail.HEIC",
@@ -4938,7 +5407,9 @@ const SPOTS = [
   "name": "Sully Bump Over Bar To Grind",
   "area": "Flatbush \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bump"
+  ],
   "photos": [
    {
     "file": "sully bump over bar to grind.HEIC",
@@ -4955,7 +5426,10 @@ const SPOTS = [
   "name": "Sunroof Drop Over Fence",
   "area": "Carnegie Hill \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Drop",
+   "Fence"
+  ],
   "photos": [
    {
     "file": "sunroof drop over fence b.HEIC",
@@ -4980,7 +5454,10 @@ const SPOTS = [
   "name": "Sunset Park Bump Over Gap",
   "area": "Gowanus \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap",
+   "Bump"
+  ],
   "photos": [
    {
     "file": "sunset park bump over gap b.HEIC",
@@ -5005,7 +5482,9 @@ const SPOTS = [
   "name": "Tall Fence",
   "area": "Crown Heights \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Fence"
+  ],
   "photos": [
    {
     "file": "tall fence.HEIC",
@@ -5022,7 +5501,9 @@ const SPOTS = [
   "name": "Tall Hubba",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Hubba"
+  ],
   "photos": [
    {
     "file": "tall hubba.HEIC",
@@ -5039,7 +5520,9 @@ const SPOTS = [
   "name": "Tall Square Rail",
   "area": "Koreatown \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "tall square rail b.HEIC",
@@ -5064,7 +5547,10 @@ const SPOTS = [
   "name": "The General Gap Over Rail",
   "area": "Kips Bay \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail",
+   "Gap"
+  ],
   "photos": [
    {
     "file": "the general gap over rail b.HEIC",
@@ -5130,7 +5616,9 @@ const SPOTS = [
   "name": "Tribeca 3 Up 3 Down",
   "area": "Hudson Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "tribeca 3 up 3 down.HEIC",
@@ -5147,7 +5635,9 @@ const SPOTS = [
   "name": "Tribeca Low Ledge Lines",
   "area": "Tribeca \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "tribeca low ledge lines.HEIC",
@@ -5181,7 +5671,9 @@ const SPOTS = [
   "name": "Tribeca Tall Rail",
   "area": "Meatpacking \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Rail"
+  ],
   "photos": [
    {
     "file": "tribeca tall rail b.HEIC",
@@ -5206,7 +5698,10 @@ const SPOTS = [
   "name": "Triple Bank: Pad Hill Bomb",
   "area": "Cypress Hills \u00b7 Brooklyn",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Bank",
+   "Pad"
+  ],
   "photos": [
    {
     "file": "triple bank: pad hill bomb.HEIC",
@@ -5223,7 +5718,9 @@ const SPOTS = [
   "name": "Tyshawn Subway Gap",
   "area": "Hamilton Heights \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Gap"
+  ],
   "photos": [
    {
     "file": "tyshawn subway gap.JPEG",
@@ -5240,7 +5737,10 @@ const SPOTS = [
   "name": "West Village Pad Grate",
   "area": "West Village \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Pad",
+   "Grate"
+  ],
   "photos": [
    {
     "file": "west village pad grate.HEIC",
@@ -5257,7 +5757,9 @@ const SPOTS = [
   "name": "White Slant Wall Over Stair",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Stairs"
+  ],
   "photos": [
    {
     "file": "whate slant wall over stair.HEIC",
@@ -5274,7 +5776,9 @@ const SPOTS = [
   "name": "Wood Ledge Line",
   "area": "Lincoln Square \u00b7 Manhattan",
   "notes": "",
-  "tags": [],
+  "tags": [
+   "Ledge"
+  ],
   "photos": [
    {
     "file": "wood ledge line b.HEIC",
@@ -5498,6 +6002,7 @@ function select(id, fromUser) {
   document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
   const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
   document.getElementById("detail").innerHTML = `
+    <div class="sheet-close"><span aria-hidden="true"></span><button type="button" id="sheet-close">Back to map</button></div>
     <h2>${s.name}</h2>
     <ul class="meta">
       ${s.area ? `<li>${s.area}</li>` : ""}
@@ -5517,8 +6022,15 @@ function select(id, fromUser) {
   document.querySelectorAll("[data-jump]").forEach(c => c.addEventListener("click", () => { state.tags = new Set([c.dataset.jump]); refresh(); }));
   if (fromUser) {
     try { history.replaceState(null, "", "#" + id); } catch (e) { location.hash = id; }
-    if (window.matchMedia("(max-width: 820px)").matches) document.getElementById("detail").scrollIntoView({ block: "start" });
   }
+  const mobile = window.matchMedia("(max-width: 820px)").matches;
+  const det = document.getElementById("detail");
+  det.scrollTop = 0;
+  if (mobile && (fromUser || location.hash)) {
+    det.classList.add("open");
+    window.scrollTo({ top: 0, behavior: fromUser ? "smooth" : "auto" });
+  }
+  document.getElementById("sheet-close").addEventListener("click", () => det.classList.remove("open"));
 }
 
 drawMap();
@@ -5526,6 +6038,7 @@ drawChips();
 drawList();
 select((location.hash || "").slice(1) || SPOTS[0].id, false);
 window.addEventListener("hashchange", () => select(location.hash.slice(1), false));
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("detail").classList.remove("open"); });
 </script>
 </body>
 </html>

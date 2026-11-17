@@ -68,14 +68,32 @@ def scan(photos, tools):
     files = sorted(f for f in os.listdir(photos) if f.lower().endswith(EXTS) and not f.startswith('.'))
     return st, [f for f in files if f not in seen]
 
+# Obstacle types read from the words in each spot's name (Sebastian's own words).
+TYPES = [("Rail", r"rail|kink"), ("Hubba", r"hubba"), ("Ledge", r"ledge"), ("Gap", r"gap"),
+         ("Stairs", r"stair|\bset\b|\bsteps?\b|\d+ up \d+ down|\d+ down"), ("Bank", r"bank"), ("Pad", r"\bpads?\b"),
+         ("Curb", r"curb"), ("Wallride", r"wallride|ride on"), ("Bump", r"bump"), ("Drop", r"drop"),
+         ("Grate", r"grate"), ("Barrier", r"barrier|barricade"), ("Ramp", r"kicker|ramp|roll in|hip|wave|transition"),
+         ("Wallie", r"wallie"), ("Fence", r"fence"), ("Philly Step", r"philly"), ("Block", r"\bblocks?\b"), ("DIY", r"\bdiy\b")]
+
+def auto_types(name):
+    n = name.lower()
+    out = [label for label, pat in TYPES if re.search(pat, n)]
+    if "Philly Step" in out and "stair" not in n and "Stairs" in out:
+        out.remove("Stairs")
+    return out
+
 def render(tools, site):
     st = load_state(tools)
-    tpl = open(os.path.join(tools, 'template.html')).read()
-    data = [{"id": s["id"], "name": s["name"], "area": s.get("area", ""), "notes": s.get("notes", ""), "tags": s.get("tags", []),
+    data = [{"id": s["id"], "name": s["name"], "area": s.get("area", ""), "notes": s.get("notes", ""),
+             "tags": list(dict.fromkeys(s.get("tags", []) + auto_types(s["name"]))),
              "photos": [{k: p[k] for k in ("file", "src", "thumb", "lat", "lon", "time")} for p in s["photos"]]}
             for s in st["spots"]]
     os.makedirs(site, exist_ok=True)
-    open(os.path.join(site, 'index.html'), 'w').write(tpl.replace('/*SPOTS_JSON*/[]', json.dumps(data, indent=1)))
+    blob = json.dumps(data, indent=1)
+    for tpl_name, out_name in (("template.html", "index.html"), ("gallery.html", "gallery.html")):
+        p = os.path.join(tools, tpl_name)
+        if os.path.exists(p):
+            open(os.path.join(site, out_name), 'w').write(open(p).read().replace('/*SPOTS_JSON*/[]', blob))
 
 def update(photos, tools, site):
     st, new = scan(photos, tools)

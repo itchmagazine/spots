@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Itch NYC Spot Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: photocopied zine contact sheet. Filters on top, a 2/3/4-column photo grid, a spot viewer that opens over the page. */
+:root {
+  --paper: #d9d9d4;
+  --paper-2: #c9c9c3;
+  --ink: #111111;
+  --ink-soft: #4a4a46;
+  --hot: #ff3d14;
+  --display: "Archivo Black", "Arial Black", Impact, sans-serif;
+  --body: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.5; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px; }
+button { font: inherit; color: inherit; }
+
+header {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 24px;
+  padding: 20px clamp(16px, 4vw, 40px) 14px; border-bottom: 3px solid var(--ink);
+}
+.logo { font-family: var(--display); font-size: clamp(40px, 9vw, 76px); line-height: .85; letter-spacing: -.02em; margin: 0; text-transform: uppercase; }
+.logo span { color: var(--hot); }
+.tag { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; max-width: 34ch; text-wrap: balance; }
+.nav { display: flex; gap: 8px; width: 100%; }
+.nav a { font: 13px var(--display); text-transform: uppercase; text-decoration: none; padding: 8px 14px; border: 3px solid var(--ink); }
+.nav a[aria-current="page"] { background: var(--ink); color: var(--paper); }
+.nav a:hover { background: var(--hot); color: var(--ink); }
+
+.filters {
+  background: var(--paper);
+  padding: 12px clamp(16px, 4vw, 40px); border-bottom: 3px solid var(--ink); display: grid; gap: 10px;
+}
+@media (min-width: 700px) { .filters { position: sticky; top: 0; z-index: 5; } }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row input[type="search"] {
+  flex: 1 1 220px; min-width: 0; font: 15px var(--body); padding: 9px 12px; color: var(--ink);
+  background: var(--paper); border: 3px solid var(--ink); border-radius: 0;
+}
+.row input::placeholder { color: var(--ink-soft); }
+.select { display: flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.select select {
+  font: 12px var(--display); text-transform: uppercase; padding: 8px 10px; border: 3px solid var(--ink);
+  background: var(--paper); color: var(--ink); border-radius: 0; cursor: pointer;
+}
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.chip {
+  flex: 0 0 auto; font: 11px var(--display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
+  padding: 5px 10px; border: 2px solid var(--ink); background: var(--paper); white-space: nowrap;
+}
+.chip:hover { background: var(--ink); color: var(--paper); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.chip .n { opacity: .6; margin-left: 4px; }
+.status { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); display: flex; justify-content: space-between; gap: 10px; }
+.status button { background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; text-transform: uppercase; letter-spacing: .08em; color: var(--ink); }
+
+.grid {
+  list-style: none; margin: 0; padding: 16px clamp(16px, 4vw, 40px) 40px;
+  display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 700px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } }
+@media (min-width: 1050px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tile { display: block; width: 100%; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+.tile .ph { position: relative; display: block; aspect-ratio: 3 / 4; border: 3px solid var(--ink); background: var(--paper-2); overflow: hidden; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(1) contrast(1.1); transition: filter .2s; }
+.tile:hover img, .tile:focus-visible img { filter: none; }
+.tile .count { position: absolute; top: 6px; right: 6px; background: var(--ink); color: var(--paper); font: 10px var(--display); padding: 2px 6px; letter-spacing: .04em; }
+.tile .dist { position: absolute; bottom: 6px; left: 6px; background: var(--hot); color: var(--ink); font: 10px var(--display); padding: 2px 6px; text-transform: uppercase; }
+.tile h2 { margin: 7px 0 0; font: 14px/1.1 var(--display); text-transform: uppercase; text-wrap: balance; }
+.tile p { margin: 2px 0 0; font-size: 11px; color: var(--ink-soft); }
+.empty { padding: 30px clamp(16px, 4vw, 40px); }
+
+/* Spot viewer */
+dialog {
+  border: 0; padding: 0; margin: 0; width: 100%; max-width: none; height: 100%; max-height: none;
+  background: var(--paper); color: var(--ink);
+}
+dialog::backdrop { background: rgba(17,17,17,.6); }
+@media (min-width: 900px) {
+  dialog { width: min(1100px, 92vw); height: auto; max-height: 90vh; margin: auto; border: 3px solid var(--ink); }
+}
+.viewer { display: grid; gap: 14px; padding: 0 clamp(16px, 3vw, 28px) calc(28px + env(safe-area-inset-bottom)); }
+.vbar {
+  position: sticky; top: 0; z-index: 2; background: var(--paper); display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: calc(12px + env(safe-area-inset-top)) 0 10px; border-bottom: 1px dashed var(--ink);
+}
+.vbar button { font: 12px var(--display); text-transform: uppercase; padding: 8px 12px; border: 3px solid var(--ink); background: var(--hot); cursor: pointer; }
+.vbar .step { display: flex; gap: 6px; }
+.vbar .step button { background: var(--paper); }
+.vbar .step button:hover { background: var(--ink); color: var(--paper); }
+.viewer h3 { margin: 0; font: clamp(28px, 5vw, 44px)/.95 var(--display); text-transform: uppercase; text-wrap: balance; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0; padding: 0; list-style: none; font-size: 12px; }
+.meta li { border: 1.5px solid var(--ink); padding: 2px 8px; text-transform: uppercase; letter-spacing: .05em; }
+.meta li.coords { font-variant-numeric: tabular-nums; text-transform: none; }
+.notes { margin: 0; max-width: 60ch; }
+.vphotos { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .vphotos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.vphotos figure { margin: 0; }
+.vphotos img { width: 100%; display: block; border: 3px solid var(--ink); background: var(--paper-2); aspect-ratio: 3 / 4; object-fit: cover; }
+.vphotos figcaption { font-size: 11px; margin-top: 4px; color: var(--ink-soft); }
+.go { display: flex; flex-wrap: wrap; gap: 10px; }
+.go a { font: 13px var(--display); text-transform: uppercase; text-decoration: none; padding: 10px 14px; border: 3px solid var(--ink); background: var(--paper); }
+.go a:hover { background: var(--ink); color: var(--paper); }
+.go a.primary { background: var(--hot); }
+
+footer { padding: 14px clamp(16px, 4vw, 40px); border-top: 3px solid var(--ink); font-size: 11px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; text-transform: uppercase; letter-spacing: .08em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <h1 class="logo">Itch<span>/</span>NYC Spots</h1>
+  <p class="tag">Every spot, first shot first. Tap one for all its photos and where it is.</p>
+  <nav class="nav" aria-label="Pages"><a href="./">Map</a><a href="gallery.html" aria-current="page">Gallery</a></nav>
+</header>
+
+<section class="filters" aria-label="Sort and filter">
+  <div class="row">
+    <label for="q" class="sr">Search spots</label>
+    <input id="q" type="search" placeholder="Search spots, areas…" autocomplete="off">
+    <label class="select" for="sort">Sort
+      <select id="sort">
+        <option value="new">Newest shot</option>
+        <option value="old">Oldest shot</option>
+        <option value="near">Nearest to me</option>
+        <option value="az">A–Z</option>
+      </select>
+    </label>
+    <label class="select" for="boro">Borough
+      <select id="boro"><option value="">All</option></select>
+    </label>
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="Obstacle type"></div>
+  <p class="status"><span id="count"></span><button type="button" id="clear" hidden>Clear filters</button></p>
+</section>
+
+<ul class="grid" id="grid"></ul>
+
+<dialog id="viewer" aria-labelledby="v-title"></dialog>
+
+<footer>
+  <span>Itch Magazine · Spot Map Vol. 1</span>
+  <span id="total"></span>
+</footer>
+
+<script>
+const SPOTS = /*SPOTS_JSON*/[];
+
+const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+SPOTS.forEach(s => {
+  s.lat = s.photos.reduce((a, p) => a + p.lat, 0) / s.photos.length;
+  s.lon = s.photos.reduce((a, p) => a + p.lon, 0) / s.photos.length;
+  s.tags = s.tags || [];
+  s.boro = (s.area.split(" · ")[1] || "").trim();
+  const times = s.photos.map(p => p.time).filter(Boolean).sort();
+  s.first = times[0] || ""; s.last = times[times.length - 1] || "";
+  s.hay = norm([s.name, s.area, s.notes, s.tags.join(" ")].join(" "));
+});
+
+const state = { q: "", sort: "new", boro: "", types: new Set(), me: null };
+
+function km(a, b) {
+  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const fmtDist = k => { const mi = k * 0.621371; return mi < 0.1 ? `${Math.round(mi * 5280)} ft` : `${mi.toFixed(mi < 10 ? 1 : 0)} mi`; };
+const fmtDate = t => t ? new Date(t.replace(" ", "T")).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+const fmtTime = t => t ? new Date(t.replace(" ", "T")).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "";
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// Boroughs and types come from the data.
+[...new Set(SPOTS.map(s => s.boro).filter(Boolean))].sort().forEach(b => {
+  const o = document.createElement("option"); o.value = b; o.textContent = b; document.getElementById("boro").appendChild(o);
+});
+const TYPE_COUNTS = {};
+SPOTS.forEach(s => s.tags.forEach(t => { TYPE_COUNTS[t] = (TYPE_COUNTS[t] || 0) + 1; }));
+const TYPES = Object.keys(TYPE_COUNTS).sort((a, b) => TYPE_COUNTS[b] - TYPE_COUNTS[a]);
+
+function drawChips() {
+  document.getElementById("chips").innerHTML = TYPES.map(t =>
+    `<button type="button" class="chip" data-t="${esc(t)}" aria-pressed="${state.types.has(t)}">${esc(t)}<span class="n">${TYPE_COUNTS[t]}</span></button>`).join("");
+  document.querySelectorAll("#chips .chip").forEach(c => c.addEventListener("click", () => {
+    const t = c.dataset.t; state.types.has(t) ? state.types.delete(t) : state.types.add(t); draw();
+  }));
+}
+
+function visible() {
+  const words = norm(state.q).split(/\s+/).filter(Boolean);
+  let out = SPOTS.filter(s =>
+    words.every(w => s.hay.includes(w)) &&
+    (!state.boro || s.boro === state.boro) &&
+    (!state.types.size || s.tags.some(t => state.types.has(t))));
+  const by = {
+    new: (a, b) => (b.last || "").localeCompare(a.last || ""),
+    old: (a, b) => (a.first || "9").localeCompare(b.first || "9"),
+    az: (a, b) => a.name.localeCompare(b.name),
+    near: (a, b) => state.me ? km(state.me, a) - km(state.me, b) : 0
+  }[state.sort];
+  return out.slice().sort(by);
+}
+
+function draw() {
+  drawChips();
+  const vis = visible();
+  const grid = document.getElementById("grid");
+  grid.innerHTML = vis.length ? vis.map((s, i) => `
+    <li><button type="button" class="tile" data-id="${s.id}">
+      <span class="ph"><img src="${s.photos[0].thumb}" alt="" loading="${i < 8 ? "eager" : "lazy"}" decoding="async">
+        ${s.photos.length > 1 ? `<span class="count">${s.photos.length} PHOTOS</span>` : ""}
+        ${state.sort === "near" && state.me ? `<span class="dist">${fmtDist(km(state.me, s))}</span>` : ""}
+      </span>
+      <h2>${esc(s.name)}</h2>
+      <p>${esc(s.area || "NYC")}${s.first ? " · " + fmtDate(s.first) : ""}</p>
+    </button></li>`).join("")
+    : `<li class="empty">No spots match. Try another word or clear the filters.</li>`;
+  grid.querySelectorAll(".tile").forEach(b => b.addEventListener("click", () => openSpot(b.dataset.id, true)));
+  const filtered = state.q || state.boro || state.types.size;
+  document.getElementById("count").textContent = filtered ? `${vis.length} of ${SPOTS.length} spots` : `${SPOTS.length} spots`;
+  document.getElementById("clear").hidden = !filtered;
+  document.getElementById("total").textContent = `${SPOTS.length} spots · ${SPOTS.reduce((a, s) => a + s.photos.length, 0)} photos`;
+}
+
+let qTimer;
+document.getElementById("q").addEventListener("input", e => { clearTimeout(qTimer); qTimer = setTimeout(() => { state.q = e.target.value; draw(); }, 150); });
+document.getElementById("boro").addEventListener("change", e => { state.boro = e.target.value; draw(); });
+document.getElementById("clear").addEventListener("click", () => {
+  state.q = ""; state.boro = ""; state.types.clear();
+  document.getElementById("q").value = ""; document.getElementById("boro").value = ""; draw();
+});
+const sortSel = document.getElementById("sort");
+sortSel.addEventListener("change", e => {
+  const v = e.target.value;
+  if (v !== "near") { state.sort = v; draw(); return; }
+  if (state.me) { state.sort = "near"; draw(); return; }
+  const opt = sortSel.querySelector('option[value="near"]');
+  if (!navigator.geolocation) { opt.textContent = "Location unavailable"; sortSel.value = state.sort; return; }
+  opt.textContent = "Locating…";
+  navigator.geolocation.getCurrentPosition(pos => {
+    state.me = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    opt.textContent = "Nearest to me"; state.sort = "near"; draw();
+  }, () => {
+    opt.textContent = "Nearest (turn on location)"; sortSel.value = state.sort;
+  }, { enableHighAccuracy: true, timeout: 10000 });
+});
+
+// ---- Spot viewer ----
+const dlg = document.getElementById("viewer");
+let current = null;
+function openSpot(id, fromUser) {
+  const s = SPOTS.find(x => x.id === id);
+  if (!s) return;
+  current = id;
+  const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
+  dlg.innerHTML = `
+    <div class="viewer">
+      <div class="vbar">
+        <button type="button" id="v-close">Back to gallery</button>
+        <span class="step"><button type="button" id="v-prev" aria-label="Previous spot">←</button><button type="button" id="v-next" aria-label="Next spot">→</button></span>
+      </div>
+      <h3 id="v-title">${esc(s.name)}</h3>
+      <ul class="meta">
+        ${s.area ? `<li>${esc(s.area)}</li>` : ""}
+        ${s.first ? `<li>Shot ${fmtDate(s.first)}</li>` : ""}
+        <li class="coords">${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}</li>
+        ${state.me ? `<li>${fmtDist(km(state.me, s))} away</li>` : ""}
+      </ul>
+      ${s.tags.length ? `<div class="chips">${s.tags.map(t => `<button type="button" class="chip" data-only="${esc(t)}">${esc(t)}</button>`).join("")}</div>` : ""}
+      ${s.notes ? `<p class="notes">${esc(s.notes)}</p>` : ""}
+      <div class="go">
+        <a class="primary" href="./#${s.id}">Show on map</a>
+        <a href="https://maps.apple.com/?ll=${ll}&q=${encodeURIComponent(s.name)}" target="_blank" rel="noopener">Apple Maps</a>
+        <a href="https://www.google.com/maps/search/?api=1&query=${ll}" target="_blank" rel="noopener">Google Maps</a>
+      </div>
+      <div class="vphotos">${s.photos.map((p, j) => `
+        <figure><img src="${p.src}" alt="${esc(s.name)}, photo ${j + 1}" loading="${j < 2 ? "eager" : "lazy"}">
+        <figcaption>${String(j + 1).padStart(2, "0")} / ${String(s.photos.length).padStart(2, "0")}${p.time ? " · " + fmtDate(p.time) + " " + fmtTime(p.time) : ""}</figcaption></figure>`).join("")}
+      </div>
+    </div>`;
+  dlg.querySelector("#v-close").addEventListener("click", closeSpot);
+  const step = d => { const vis = visible(); const i = vis.findIndex(x => x.id === current); const n = vis[(i + d + vis.length) % vis.length]; if (n) openSpot(n.id, true); };
+  dlg.querySelector("#v-prev").addEventListener("click", () => step(-1));
+  dlg.querySelector("#v-next").addEventListener("click", () => step(1));
+  dlg.querySelectorAll("[data-only]").forEach(c => c.addEventListener("click", () => { state.types = new Set([c.dataset.only]); closeSpot(); draw(); }));
+  if (!dlg.open) { try { dlg.showModal(); } catch (e) { dlg.setAttribute("open", ""); } }
+  dlg.scrollTop = 0;
+  if (fromUser) { try { history.replaceState(null, "", "#" + id); } catch (e) {} }
+}
+function closeSpot() {
+  if (dlg.open) dlg.close();
+  current = null;
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+}
+dlg.addEventListener("click", e => { if (e.target === dlg) closeSpot(); });
+dlg.addEventListener("cancel", e => { e.preventDefault(); closeSpot(); });
+document.addEventListener("keydown", e => {
+  if (!dlg.open) return;
+  if (e.key === "ArrowRight") dlg.querySelector("#v-next")?.click();
+  if (e.key === "ArrowLeft") dlg.querySelector("#v-prev")?.click();
+});
+
+draw();
+const h = (location.hash || "").slice(1);
+if (h) openSpot(h, false);
+window.addEventListener("hashchange", () => { const id = location.hash.slice(1); if (id) openSpot(id, false); });
+</script>
+</body>
+</html>
