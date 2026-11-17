@@ -518,33 +518,8 @@
    ]
   },
   {
-   "id": "steep-rail",
-   "name": "Steep rail",
-   "area": "Woodside \u00b7 Queens",
-   "notes": "",
-   "tags": [],
-   "photos": [
-    {
-     "file": "Steep rail b.HEIC",
-     "src": "img/steep-rail-b.jpg",
-     "thumb": "img/steep-rail-b-sm.jpg",
-     "lat": 40.741303,
-     "lon": -73.906569,
-     "time": "2025-11-15 11:32"
-    },
-    {
-     "file": "Steep rail.HEIC",
-     "src": "img/steep-rail.jpg",
-     "thumb": "img/steep-rail-sm.jpg",
-     "lat": 40.741344,
-     "lon": -73.906769,
-     "time": "2025-11-15 11:32"
-    }
-   ]
-  },
-  {
    "id": "thin-ledge",
-   "name": "Thin ledge",
+   "name": "thin ledge + steep rail",
    "area": "Woodside \u00b7 Queens",
    "notes": "",
    "tags": [],
@@ -564,6 +539,22 @@
      "lat": 40.741417,
      "lon": -73.907494,
      "time": "2025-11-15 11:27"
+    },
+    {
+     "file": "Steep rail b.HEIC",
+     "src": "img/steep-rail-b.jpg",
+     "thumb": "img/steep-rail-b-sm.jpg",
+     "lat": 40.741303,
+     "lon": -73.906569,
+     "time": "2025-11-15 11:32"
+    },
+    {
+     "file": "Steep rail.HEIC",
+     "src": "img/steep-rail.jpg",
+     "thumb": "img/steep-rail-sm.jpg",
+     "lat": 40.741344,
+     "lon": -73.906769,
+     "time": "2025-11-15 11:32"
     }
    ]
   },
