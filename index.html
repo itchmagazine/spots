@@ -128,7 +128,16 @@ main {
 .nav a { font: 13px var(--display); text-transform: uppercase; text-decoration: none; padding: 8px 14px; border: 3px solid var(--ink); }
 .nav a[aria-current="page"] { background: var(--ink); color: var(--paper); }
 .nav a:hover { background: var(--hot); color: var(--ink); }
-.sheet-close { display: none; }
+@media (min-width: 821px) {
+  .map-wrap { position: sticky; top: 0; align-self: start; height: 100vh; }
+  #map { height: 100vh; min-height: 0; }
+  .detail { display: none; }
+  .detail.open { display: grid; }
+  .side.has-spot .finder, .side.has-spot .list { display: none; }
+  .sheet-close { display: flex; justify-content: flex-start; padding-bottom: 6px; border-bottom: 1px dashed var(--ink); }
+  .sheet-close span { display: none; }
+  .sheet-close button { font: 12px var(--display); text-transform: uppercase; padding: 8px 12px; border: 3px solid var(--ink); background: var(--hot); color: var(--ink); cursor: pointer; }
+}
 @media (max-width: 820px) {
   /* On phones the spot opens as a sheet over the map instead of below the list. */
   .detail {
@@ -5993,16 +6002,30 @@ document.getElementById("near").addEventListener("click", e => {
   }, () => { btn.textContent = "Location off"; setTimeout(() => { btn.textContent = "Near me"; }, 2500); }, { enableHighAccuracy: true, timeout: 10000 });
 });
 
+function closeSpot() {
+  const det = document.getElementById("detail");
+  det.classList.remove("open");
+  document.querySelector(".side").classList.remove("has-spot");
+  document.querySelectorAll(".pin").forEach(g => g.classList.remove("on"));
+  const cur = (location.hash || "").slice(1);
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  if (!window.matchMedia("(max-width: 820px)").matches) {
+    const card = document.querySelector(`.card[data-id="${cur}"]`);
+    if (card) card.scrollIntoView({ block: "center" });
+  }
+  document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", "false"));
+}
+
 function select(id, fromUser) {
   const i = SPOTS.findIndex(s => s.id === id);
   if (i < 0) return;
   const s = SPOTS[i];
   document.querySelectorAll(".pin").forEach(g => g.classList.toggle("on", g.dataset.id === id));
-  if (map && fromUser) map.easeTo({ center: [s.lon, s.lat], zoom: Math.max(map.getZoom(), 17), duration: 700 });
+  if (map && map.loaded()) map.easeTo({ center: [s.lon, s.lat], zoom: Math.max(map.getZoom(), 17), duration: fromUser ? 700 : 0 });
   document.querySelectorAll(".card").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
   const ll = `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`;
   document.getElementById("detail").innerHTML = `
-    <div class="sheet-close"><span aria-hidden="true"></span><button type="button" id="sheet-close">Back to map</button></div>
+    <div class="sheet-close"><span aria-hidden="true"></span><button type="button" id="sheet-close">${window.matchMedia("(max-width: 820px)").matches ? "Back to map" : "← All spots"}</button></div>
     <h2>${s.name}</h2>
     <ul class="meta">
       ${s.area ? `<li>${s.area}</li>` : ""}
@@ -6019,26 +6042,30 @@ function select(id, fromUser) {
       <a class="primary" href="https://maps.apple.com/?ll=${ll}&q=${encodeURIComponent(s.name)}" target="_blank" rel="noopener">Apple Maps</a>
       <a href="https://www.google.com/maps/search/?api=1&query=${ll}" target="_blank" rel="noopener">Google Maps</a>
     </div>`;
-  document.querySelectorAll("[data-jump]").forEach(c => c.addEventListener("click", () => { state.tags = new Set([c.dataset.jump]); refresh(); }));
+  document.querySelectorAll("[data-jump]").forEach(c => c.addEventListener("click", () => { closeSpot(); state.tags = new Set([c.dataset.jump]); refresh(); }));
   if (fromUser) {
     try { history.replaceState(null, "", "#" + id); } catch (e) { location.hash = id; }
   }
   const mobile = window.matchMedia("(max-width: 820px)").matches;
   const det = document.getElementById("detail");
   det.scrollTop = 0;
-  if (mobile && (fromUser || location.hash)) {
-    det.classList.add("open");
-    window.scrollTo({ top: 0, behavior: fromUser ? "smooth" : "auto" });
-  }
-  document.getElementById("sheet-close").addEventListener("click", () => det.classList.remove("open"));
+  det.classList.add("open");
+  document.querySelector(".side").classList.add("has-spot");
+  if (mobile) window.scrollTo({ top: 0, behavior: fromUser ? "smooth" : "auto" });
+  else det.scrollIntoView({ block: "start", behavior: "auto" });
+  document.getElementById("sheet-close").addEventListener("click", closeSpot);
 }
 
 drawMap();
 drawChips();
 drawList();
-select((location.hash || "").slice(1) || SPOTS[0].id, false);
-window.addEventListener("hashchange", () => select(location.hash.slice(1), false));
-document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("detail").classList.remove("open"); });
+const startId = (location.hash || "").slice(1);
+if (startId && SPOTS.some(s => s.id === startId)) {
+  select(startId, false);
+  if (map) map.once("load", () => { const s = SPOTS.find(x => x.id === startId); map.jumpTo({ center: [s.lon, s.lat], zoom: 17 }); });
+}
+window.addEventListener("hashchange", () => { const id = location.hash.slice(1); if (id) select(id, true); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.getElementById("detail").classList.contains("open")) closeSpot(); });
 </script>
 </body>
 </html>
